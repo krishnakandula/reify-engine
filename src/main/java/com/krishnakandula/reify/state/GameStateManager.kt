@@ -1,6 +1,7 @@
 package com.krishnakandula.reify.state
 
-import java.util.*
+import java.util.Deque
+import java.util.ArrayDeque
 
 object GameStateManager {
 

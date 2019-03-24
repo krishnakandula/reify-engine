@@ -2,6 +2,8 @@ package com.krishnakandula.reify
 
 import com.krishnakandula.reify.components.Component
 import com.krishnakandula.reify.systems.System
+import io.reactivex.Observable
+import io.reactivex.subjects.BehaviorSubject
 import java.util.*
 
 class Engine {
@@ -14,11 +16,15 @@ class Engine {
         }
     })
 
-    private val componentFamilies: MutableMap<Class<out Component>, MutableSet<GameObject>> = mutableMapOf()
-    private val gameObjects: MutableSet<GameObject> = mutableSetOf()
+    private val componentFamilies = mutableMapOf<Class<out Component>, MutableSet<GameObject>>()
+    private val gameObjects = mutableSetOf<GameObject>()
+    private val resizeSubject = BehaviorSubject.create<Pair<Float, Float>>()
 
     fun addSystems(vararg systems: System) {
-        gameSystems.addAll(systems)
+        systems.forEach {
+            gameSystems.add(it)
+            it.onAddedToEngine(this)
+        }
     }
 
     fun removeSystem(system: System) {
@@ -26,7 +32,8 @@ class Engine {
     }
 
     fun update(deltaTime: Float) {
-        gameSystems.filter { it.enabled }
+        gameSystems.forEach { it.onStartProcessing(deltaTime, this) }
+        gameSystems.filter(System::enabled)
                 .forEach { system ->
                     filterGameObjects(system)
                             .forEach { gameObject ->
@@ -55,10 +62,18 @@ class Engine {
         objs.forEach(this::removeGameObject)
     }
 
+    fun resize(width: Float, height: Float) {
+        resizeSubject.onNext(Pair(width, height))
+    }
+
     fun dispose() {
         gameSystems.forEach(System::dispose)
         gameSystems.clear()
     }
+
+    fun observeScreenResize(): Observable<Pair<Float, Float>> = resizeSubject
+
+    fun getScreenSize(): Pair<Float, Float> = resizeSubject.value!!
 
     private fun filterGameObjects(system: System): Set<GameObject> {
         val filters = system.getFilters()

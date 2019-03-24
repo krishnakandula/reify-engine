@@ -21,13 +21,13 @@ class RenderingSystem(private val spriteBatch: SpriteBatch,
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         shapeRenderer.color = Color.CORAL
 
-        val renderable = gameObject.getComponent<RenderComponent>()!!
-        val transform = gameObject.getComponent<TransformComponent>()!!
+        val renderable = gameObject.getComponent<RenderComponent>() ?: return
+        val transform = gameObject.getComponent<TransformComponent>() ?: return
         shapeRenderer.rect(
                 transform.position.x,
                 transform.position.y,
-                gameObject.width,
-                gameObject.height)
+                transform.width,
+                transform.height)
 
         spriteBatch.end()
         shapeRenderer.end()

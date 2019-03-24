@@ -6,15 +6,13 @@ import com.krishnakandula.reify.components.TransformComponent
 
 abstract class GameObject(positionX: Float = 0f,
                           positionY: Float = 0f,
-                          val width: Float = 1f,
-                          val height: Float = 1f,
-                          scaleX: Float = 1f,
-                          scaleY: Float = 1f) {
+                          width: Float = 1f,
+                          height: Float = 1f) {
 
-    protected val components: MutableMap<Class<out Component>, Component> = HashMap()
+    val components: MutableMap<Class<out Component>, Component> = HashMap()
 
     init {
-        val transform = TransformComponent(Vector2(positionX, positionY), Vector2(scaleX, scaleY))
+        val transform = TransformComponent(Vector2(positionX, positionY), width, height)
         addComponent(transform)
     }
 
