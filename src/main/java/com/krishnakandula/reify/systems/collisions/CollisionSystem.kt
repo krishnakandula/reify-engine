@@ -5,12 +5,14 @@ import com.krishnakandula.reify.Engine
 import com.krishnakandula.reify.GameObject
 import com.krishnakandula.reify.components.CollisionComponent
 import com.krishnakandula.reify.components.TransformComponent
+import com.krishnakandula.reify.systems.IntervalSystem
 import com.krishnakandula.reify.systems.System
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
+import java.util.*
 
 class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
-                      private val spatialHashHeight: Int = SPATIAL_HASH_HEIGHT) : System() {
+                      private val spatialHashHeight: Int = SPATIAL_HASH_HEIGHT) : IntervalSystem(120) {
 
     companion object {
         private const val SPATIAL_HASH_WIDTH = 6
@@ -45,7 +47,24 @@ class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
         spatialHash?.forEach(Cell::clear)
     }
 
-    override fun process(deltaTime: Float, gameObject: GameObject) {
+//    override fun process(deltaTime: Float, gameObject: GameObject) {
+//        spatialHash?.filter { cell -> cell.contains(gameObject) }
+//                ?.forEach { cell ->
+//                    val gameObjects = cell.getGameObjects()
+//                    gameObjects.forEach { obj ->
+//                        if (checkCollision(gameObject, obj)) {
+//                            val collision = Collision(gameObject, obj)
+//                            if (!collisions.contains(collision)) {
+//                                collisions.add(collision)
+//                                collisionPublisher.onNext(collision)
+//                            }
+//                        }
+//                    }
+//                    cell.addGameObject(gameObject)
+//                }
+//    }
+
+    override fun fixedUpdate(gameObject: GameObject) {
         spatialHash?.filter { cell -> cell.contains(gameObject) }
                 ?.forEach { cell ->
                     val gameObjects = cell.getGameObjects()

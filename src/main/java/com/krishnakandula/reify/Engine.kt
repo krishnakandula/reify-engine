@@ -42,6 +42,10 @@ class Engine {
                 }
     }
 
+    private fun fixedUpdate() {
+
+    }
+
     fun addGameObject(obj: GameObject) {
         obj.getComponents().forEach { component ->
             componentFamilies.computeIfAbsent(component.javaClass) { HashSet() }.add(obj)
