@@ -16,7 +16,7 @@ class RenderingSystem(private val spriteBatch: SpriteBatch,
         private val componentList = listOf(RenderComponent::class.java, TransformComponent::class.java)
     }
 
-    override fun process(deltaTime: Float, gameObject: GameObject) {
+    override fun update(deltaTime: Float, gameObject: GameObject) {
         spriteBatch.begin()
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         shapeRenderer.color = Color.CORAL

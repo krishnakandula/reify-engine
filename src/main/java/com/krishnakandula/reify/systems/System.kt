@@ -11,9 +11,13 @@ abstract class System(val priority: Short = 1,
 
     open fun onRemovedFromEngine() { }
 
-    open fun onStartProcessing(deltaTime: Float, engine: Engine) { }
+    open fun onStartUpdating(deltaTime: Float, engine: Engine) { }
 
-    abstract fun process(deltaTime: Float, gameObject: GameObject)
+    open fun onStartFixedUpdating(deltaTime: Float) { }
+
+    open fun update(deltaTime: Float, gameObject: GameObject) { }
+
+    open fun fixedUpdate(deltaTime: Float, gameObject: GameObject) { }
 
     abstract fun getFilters(): List<Class<out Component>>
 

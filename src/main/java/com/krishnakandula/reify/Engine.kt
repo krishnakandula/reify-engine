@@ -5,10 +5,16 @@ import com.krishnakandula.reify.systems.System
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import java.util.*
+import kotlin.collections.HashMap
 
 class Engine {
 
-    private val gameSystems: MutableSet<System> = TreeSet(Comparator<System> { s1, s2 ->
+    companion object {
+        private const val FIXED_INTERVAL = 1f / 100f
+    }
+
+    protected val gameSystemsMap = HashMap<Class<out System>, System>()
+    protected val gameSystems: MutableSet<System> = TreeSet(Comparator<System> { s1, s2 ->
         return@Comparator if (s1.priority == s2.priority) {
             1
         } else {
@@ -20,33 +26,55 @@ class Engine {
     private val gameObjects = mutableSetOf<GameObject>()
     private val resizeSubject = BehaviorSubject.create<Pair<Float, Float>>()
 
-    fun addSystems(vararg systems: System) {
-        systems.forEach {
-            gameSystems.add(it)
-            it.onAddedToEngine(this)
+    private var accumulator = 0f
+
+    inline fun <reified T : System> addSystem(system: T) {
+        if (gameSystems.contains(system) || gameSystemsMap.containsKey(T::class.java)) {
+            return
+        }
+        gameSystems.add(system)
+        gameSystemsMap[T::class.java] = system
+        system.onAddedToEngine(this)
+    }
+
+    inline fun <reified T : System> removeSystem() {
+        val system = gameSystemsMap.remove(T::class.java)
+        if (system != null) {
+            gameSystems.remove(system)
+            system.onRemovedFromEngine()
         }
     }
 
-    fun removeSystem(system: System) {
-        gameSystems.remove(system)
+    inline fun <reified T : System> getSystem(): T? {
+        return if (gameSystemsMap.containsKey(T::class.java)) {
+            gameSystemsMap[T::class.java] as T
+        } else null
     }
 
     fun update(deltaTime: Float) {
-        gameSystems.forEach { it.onStartProcessing(deltaTime, this) }
+        accumulator += deltaTime
+        while (accumulator >= FIXED_INTERVAL) {
+            gameSystems.forEach { it.onStartFixedUpdating(FIXED_INTERVAL) }
+            gameSystems.filter(System::enabled)
+                    .forEach { system ->
+                        filterGameObjects(system)
+                                .forEach { gameObject ->
+                                    system.fixedUpdate(FIXED_INTERVAL, gameObject)
+                                }
+                    }
+            accumulator -= FIXED_INTERVAL
+        }
+        gameSystems.forEach { it.onStartUpdating(deltaTime, this) }
         gameSystems.filter(System::enabled)
                 .forEach { system ->
                     filterGameObjects(system)
                             .forEach { gameObject ->
-                                system.process(deltaTime, gameObject)
+                                system.update(deltaTime, gameObject)
                             }
                 }
     }
 
-    private fun fixedUpdate() {
-
-    }
-
-    fun addGameObject(obj: GameObject) {
+    private fun addGameObject(obj: GameObject) {
         obj.getComponents().forEach { component ->
             componentFamilies.computeIfAbsent(component.javaClass) { HashSet() }.add(obj)
         }
@@ -57,7 +85,7 @@ class Engine {
         objs.forEach(this::addGameObject)
     }
 
-    fun removeGameObject(obj: GameObject) {
+    private fun removeGameObject(obj: GameObject) {
         componentFamilies.forEach { _, gameObjectsSet -> gameObjectsSet.remove(obj) }
         gameObjects.remove(obj)
     }
