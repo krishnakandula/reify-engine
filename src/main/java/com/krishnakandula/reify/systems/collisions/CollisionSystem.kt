@@ -6,6 +6,7 @@ import com.krishnakandula.reify.GameObject
 import com.krishnakandula.reify.components.CollisionComponent
 import com.krishnakandula.reify.components.TransformComponent
 import com.krishnakandula.reify.systems.System
+import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 
@@ -19,12 +20,14 @@ class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
         private val filters = listOf(CollisionComponent::class.java, TransformComponent::class.java)
     }
 
-    val collisionPublisher = PublishSubject.create<Collision>()
+    private val collisionPublisher = PublishSubject.create<Collision>()
 
     private var engine: Engine? = null
     private var spatialHash: Array<Cell>? = null
     private val collisions = mutableSetOf<Collision>()
     private val disposable = CompositeDisposable()
+
+    fun observeCollisions(): Observable<Collision> = collisionPublisher
 
     override fun onAddedToEngine(engine: Engine) {
         this.engine = engine
