@@ -3,12 +3,15 @@ package com.krishnakandula.reify
 import com.badlogic.gdx.math.Vector2
 import com.krishnakandula.reify.components.Component
 import com.krishnakandula.reify.components.TransformComponent
+import java.util.UUID
 
 abstract class GameObject(positionX: Float = 0f,
                           positionY: Float = 0f,
                           width: Float = 1f,
-                          height: Float = 1f) {
+                          height: Float = 1f,
+                          val tag: String = "") {
 
+    val id = UUID.randomUUID().toString()
     val components: MutableMap<Class<out Component>, Component> = HashMap()
 
     init {

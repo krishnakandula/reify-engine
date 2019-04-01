@@ -16,21 +16,31 @@ class RenderingSystem(private val spriteBatch: SpriteBatch,
         private val componentList = listOf(RenderComponent::class.java, TransformComponent::class.java)
     }
 
-    override fun update(deltaTime: Float, gameObject: GameObject) {
-        spriteBatch.begin()
+    override fun update(deltaTime: Float, gameObjects: Collection<GameObject>) {
+        super.update(deltaTime, gameObjects)
+
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         shapeRenderer.color = Color.CORAL
 
+        gameObjects.sortedWith(Comparator { o1, o2 ->
+            val r1 = o1.getComponent<RenderComponent>() ?: return@Comparator 1
+            val r2 = o2.getComponent<RenderComponent>() ?: return@Comparator -1
+
+            return@Comparator r2.depth.compareTo(r1.depth)
+        }).forEach(this::update)
+
+        shapeRenderer.end()
+    }
+
+    private fun update(gameObject: GameObject) {
         val renderable = gameObject.getComponent<RenderComponent>() ?: return
         val transform = gameObject.getComponent<TransformComponent>() ?: return
+
         shapeRenderer.rect(
                 transform.position.x,
                 transform.position.y,
                 transform.width,
                 transform.height)
-
-        spriteBatch.end()
-        shapeRenderer.end()
     }
 
     override fun getFilters(): List<Class<out Component>> = componentList

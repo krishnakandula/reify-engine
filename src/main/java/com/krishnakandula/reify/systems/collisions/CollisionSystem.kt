@@ -41,14 +41,15 @@ class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
         engine = null
     }
 
-    override fun onStartFixedUpdating(deltaTime: Float) {
-        super.onStartFixedUpdating(deltaTime)
+    override fun fixedUpdate(deltaTime: Float, gameObjects: Collection<GameObject>) {
+        super.fixedUpdate(deltaTime, gameObjects)
 
         collisions.clear()
         spatialHash?.forEach(Cell::clear)
+        gameObjects.forEach(this::fixedUpdate)
     }
 
-    override fun fixedUpdate(deltaTime: Float, gameObject: GameObject) {
+    private fun fixedUpdate(gameObject: GameObject) {
         spatialHash?.filter { cell -> cell.contains(gameObject) }
                 ?.forEach { cell ->
                     val gameObjects = cell.getGameObjects()

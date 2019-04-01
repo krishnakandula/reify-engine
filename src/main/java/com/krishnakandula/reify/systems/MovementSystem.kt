@@ -11,7 +11,12 @@ class MovementSystem(priority: Short = 125) : System(priority = priority) {
         private val componentList = listOf(MovementComponent::class.java, TransformComponent::class.java)
     }
 
-    override fun fixedUpdate(deltaTime: Float, gameObject: GameObject) {
+    override fun fixedUpdate(deltaTime: Float, gameObjects: Collection<GameObject>) {
+        super.fixedUpdate(deltaTime, gameObjects)
+        gameObjects.forEach { fixedUpdate(deltaTime, it) }
+    }
+
+    private fun fixedUpdate(deltaTime: Float, gameObject: GameObject) {
         val transformComponent = gameObject.getComponent<TransformComponent>() ?: return
         val movementComponent = gameObject.getComponent<MovementComponent>() ?: return
 

@@ -15,7 +15,11 @@ class GravitySystem(gravity: Float = -98f,
 
     private val gravityVector = Vector2(0f, gravity)
 
-    override fun fixedUpdate(deltaTime: Float, gameObject: GameObject) {
+    override fun fixedUpdate(deltaTime: Float, gameObjects: Collection<GameObject>) {
+        gameObjects.forEach { this.fixedUpdate(deltaTime, it) }
+    }
+
+    private fun fixedUpdate(deltaTime: Float, gameObject: GameObject) {
         val movementComponent = gameObject.getComponent<MovementComponent>() ?: return
         movementComponent.velocity.add(gravityVector.cpy().scl(deltaTime))
     }
