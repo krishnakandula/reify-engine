@@ -8,29 +8,24 @@ import com.badlogic.gdx.math.MathUtils;
  * 
  * <p>Extends {@link PositionalLight}
  * 
- * @author kalle_h
  */
 public class PointLight extends PositionalLight {
 
 	/**
 	 * Creates light shaped as a circle with default radius (15f), color and
 	 * position (0f, 0f)
-	 * 
-	 * @param rayHandler
-	 *            not {@code null} instance of RayHandler
+	 *
 	 * @param rays
 	 *            number of rays - more rays make light to look more realistic
 	 *            but will decrease performance, can't be less than MIN_RAYS
 	 */
-	public PointLight(RayHandler rayHandler, int rays) {
-		this(rayHandler, rays, Light.DefaultColor, 15f, 0f, 0f);
+	public PointLight(int rays) {
+		this(rays, Light.DefaultColor, 15f, 0f, 0f);
 	}
 	
 	/**
 	 * Creates light shaped as a circle with given radius
-	 * 
-	 * @param rayHandler
-	 *            not {@code null} instance of RayHandler
+	 *
 	 * @param rays
 	 *            number of rays - more rays make light to look more realistic
 	 *            but will decrease performance, can't be less than MIN_RAYS
@@ -43,28 +38,31 @@ public class PointLight extends PositionalLight {
 	 * @param y
 	 *            vertical position in world coordinates
 	 */
-	public PointLight(RayHandler rayHandler, int rays, Color color,
-                      float distance, float x, float y) {
-		super(rayHandler, rays, color, distance, x, y, 0f);
+	public PointLight(int rays,
+					  Color color,
+                      float distance,
+					  float x,
+					  float y) {
+		super(rays, color, distance, x, y, 0f);
 	}
 	
 	@Override
-	public void update () {
+	public void update (final RayHandler rayHandler) {
 		updateBody();
 		if (dirty) setEndPoints();
 		
-		if (cull()) return;
+		if (cull(rayHandler)) return;
 		if (staticLight && !dirty) return;
 		
 		dirty = false;
-		updateMesh();
+		updateMesh(rayHandler);
 	}
 	
 	/**
 	 * Sets light distance
 	 * 
 	 * <p>MIN value capped to 0.1f meter
-	 * <p>Actual recalculations will be done only on {@link #update()} call
+	 * <p>Actual recalculations will be done only on {@link #update(RayHandler rayHandler)} call
 	 */
 	@Override
 	public void setDistance(float dist) {
@@ -84,7 +82,7 @@ public class PointLight extends PositionalLight {
 			endY[i] = distance * sin[i];
 		}
 	}
-	
+
 	/** Not applicable for this light type **/
 	@Deprecated
 	@Override

@@ -10,13 +10,10 @@ import com.badlogic.gdx.physics.box2d.RayCastCallback;
 import com.badlogic.gdx.utils.Disposable;
 
 /**
- * Light is data container for all the light parameters. When created lights
- * are automatically added to rayHandler and could be removed by calling
- * {@link #remove()} and added manually by calling {@link #add(RayHandler)}.
+ * Light is data container for all the light parameters.
  * 
  * <p>Implements {@link Disposable}
  * 
- * @author kalle_h
  */
 public abstract class Light implements Disposable {
 
@@ -26,9 +23,7 @@ public abstract class Light implements Disposable {
 	
 	protected final Color color = new Color();
 	protected final Vector2 tmpPosition = new Vector2();
-	
-	protected RayHandler rayHandler;
-	
+
 	protected boolean active = true;
 	protected boolean soft = true;
 	protected boolean xray = false;
@@ -57,9 +52,7 @@ public abstract class Light implements Disposable {
 	/** 
 	 * Creates new active light and automatically adds it to the specified
 	 * {@link RayHandler} instance.
-	 * 
-	 * @param rayHandler
-	 *            not null instance of RayHandler
+	 *
 	 * @param rays
 	 *            number of rays - more rays make light to look more realistic
 	 *            but will decrease performance, can't be less than MIN_RAYS
@@ -70,10 +63,10 @@ public abstract class Light implements Disposable {
 	 * @param directionDegree
 	 *            direction in degrees (if applicable) 
 	 */
-	public Light(RayHandler rayHandler, int rays, Color color,
-                 float distance, float directionDegree) {
-		rayHandler.lightList.add(this);
-		this.rayHandler = rayHandler;
+	public Light(int rays,
+				 Color color,
+                 float distance,
+				 float directionDegree) {
 		setRayNum(rays);
 		setColor(color);
 		setDistance(distance);
@@ -84,12 +77,12 @@ public abstract class Light implements Disposable {
 	/**
 	 * Updates this light
 	 */
-	abstract void update();
+	abstract void update(final RayHandler rayHandler);
 
 	/**
 	 * Render this light
 	 */
-	abstract void render();
+	abstract void render(final RayHandler rayHandler);
 	
 	/**
 	 * Sets light distance
@@ -193,38 +186,6 @@ public abstract class Light implements Disposable {
 		colorF = color.toFloatBits();
 		if (staticLight) dirty = true;
 	}
-	
-	/**
-	 * Adds light to specified RayHandler
-	 */
-	public void add(RayHandler rayHandler) {
-		this.rayHandler = rayHandler;
-		if (active) {
-			rayHandler.lightList.add(this);
-		} else {
-			rayHandler.disabledLights.add(this);
-		}
-	}
-
-	/**
-	 * Removes light from specified RayHandler and disposes it
-	 */
-	public void remove() {
-		remove(true);
-	}
-	
-	/**
-	 * Removes light from specified RayHandler and disposes it if requested
-	 */
-	public void remove(boolean doDispose) {
-		if (active) {
-			rayHandler.lightList.removeValue(this, false);
-		} else {
-			rayHandler.disabledLights.removeValue(this, false);
-		}
-		rayHandler = null;
-		if (doDispose) dispose();
-	}
 
 	/**
 	 * Disposes all light resources
@@ -249,16 +210,6 @@ public abstract class Light implements Disposable {
 			return;
 
 		this.active = active;
-		if (rayHandler == null)
-			return;
-		
-		if (active) {
-			rayHandler.lightList.add(this);
-			rayHandler.disabledLights.removeValue(this, true);
-		} else {
-			rayHandler.disabledLights.add(this);
-			rayHandler.lightList.removeValue(this, true);
-		}
 	}
 
 	/**

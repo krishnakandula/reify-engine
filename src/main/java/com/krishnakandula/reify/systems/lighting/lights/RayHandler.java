@@ -17,7 +17,6 @@ import com.krishnakandula.reify.systems.lighting.shaders.LightShader;
 /**
  * Handler that manages everything related to lights updating and rendering
  * <p>Implements {@link Disposable}
- * @author kalle_h
  */
 public class RayHandler implements Disposable {
 
@@ -64,13 +63,6 @@ public class RayHandler implements Disposable {
 	 * <p>NOTE: DO NOT MODIFY THIS LIST
 	 */
 	final Array<Light> lightList = new Array<Light>(false, 16);
-
-	/**
-	 * This Array contain all the disabled lights.
-	 *
-	 * <p>NOTE: DO NOT MODIFY THIS LIST
-	 */
-	final Array<Light> disabledLights = new Array<Light>(false, 16);
 
 	LightMap lightMap;
 	final ShaderProgram lightShader;
@@ -278,7 +270,7 @@ public class RayHandler implements Disposable {
 	 */
 	public void update() {
 		for (Light light : lightList) {
-			light.update();
+			light.update(this);
 		}
 	}
 
@@ -314,7 +306,7 @@ public class RayHandler implements Disposable {
 			if (customLightShader != null) updateLightShader();
 			for (Light light : lightList) {
 				if (customLightShader != null) updateLightShaderPerLight(light);
-				light.render();
+				light.render(this);
 			}
 		}
 		shader.end();
@@ -419,7 +411,7 @@ public class RayHandler implements Disposable {
 	 * Disposes all this rayHandler lights and resources
 	 */
 	public void dispose() {
-		removeAll();
+		removeAllAndDispose();
 		if (lightMap != null) lightMap.dispose();
 		if (lightShader != null) lightShader.dispose();
 	}
@@ -427,16 +419,11 @@ public class RayHandler implements Disposable {
 	/**
 	 * Removes and disposes both all active and disabled lights
 	 */
-	public void removeAll() {
+	public void removeAllAndDispose() {
 		for (Light light : lightList) {
 			light.dispose();
 		}
 		lightList.clear();
-
-		for (Light light : disabledLights) {
-			light.dispose();
-		}
-		disabledLights.clear();
 	}
 
 	/**

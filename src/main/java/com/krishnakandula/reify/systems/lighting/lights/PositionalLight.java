@@ -16,7 +16,6 @@ import com.badlogic.gdx.physics.box2d.Body;
  * 
  * <p>Extends {@link Light}
  * 
- * @author kalle_h
  */
 public abstract class PositionalLight extends Light {
 
@@ -37,9 +36,7 @@ public abstract class PositionalLight extends Light {
 	/** 
 	 * Creates new positional light and automatically adds it to the specified
 	 * {@link RayHandler} instance.
-	 * 
-	 * @param rayHandler
-	 *            not null instance of RayHandler
+	 *
 	 * @param rays
 	 *            number of rays - more rays make light to look more realistic
 	 *            but will decrease performance, can't be less than MIN_RAYS
@@ -54,8 +51,8 @@ public abstract class PositionalLight extends Light {
 	 * @param directionDegree
 	 *            direction in degrees (if applicable) 
 	 */
-	public PositionalLight(RayHandler rayHandler, int rays, Color color, float distance, float x, float y, float directionDegree) {
-		super(rayHandler, rays, color, distance, directionDegree);
+	public PositionalLight(int rays, Color color, float distance, float x, float y, float directionDegree) {
+		super(rays, color, distance, directionDegree);
 		start.x = x;
 		start.y = y;
 
@@ -69,18 +66,18 @@ public abstract class PositionalLight extends Light {
 	}
 	
 	@Override
-	void update() {
+	void update(final RayHandler rayHandler) {
 		updateBody();
 		
-		if (cull()) return;
+		if (cull(rayHandler)) return;
 		if (staticLight && !dirty) return;
 		
 		dirty = false;
-		updateMesh();
+		updateMesh(rayHandler);
 	}
 	
 	@Override
-	void render() {
+	void render(final RayHandler rayHandler) {
 		if (rayHandler.culling && culled) return;
 
 		rayHandler.lightRenderedLastFrame++;
@@ -210,7 +207,7 @@ public abstract class PositionalLight extends Light {
 		endY = new float[rays];
 	}
 	
-	protected boolean cull() {
+	protected boolean cull(final RayHandler rayHandler) {
 		culled = rayHandler.culling && !rayHandler.intersect(
 					start.x, start.y, distance + softShadowLength);
 		return culled;
@@ -230,7 +227,7 @@ public abstract class PositionalLight extends Light {
 		setDirection(bodyAngleOffset + angle * MathUtils.radiansToDegrees);
 	}
 	
-	protected void updateMesh() {
+	protected void updateMesh(final RayHandler rayHandler) {
 		for (int i = 0; i < rayNum; i++) {
 			m_index = i;
 			f[i] = 1f;
