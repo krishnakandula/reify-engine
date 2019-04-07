@@ -1,8 +1,8 @@
 package com.krishnakandula.reify.systems.lighting.shaders;
 
-import box2dLight.RayHandler;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
+import com.krishnakandula.reify.systems.lighting.lights.RayHandler;
 
 public class Gaussian {
 
