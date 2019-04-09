@@ -7,7 +7,6 @@ import com.krishnakandula.reify.components.CollisionComponent
 import com.krishnakandula.reify.components.TransformComponent
 import com.krishnakandula.reify.systems.System
 import io.reactivex.Observable
-import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 
 class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
@@ -25,19 +24,10 @@ class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
     private var engine: Engine? = null
     private var spatialHash: Array<Cell>? = null
     private val collisions = mutableSetOf<Collision>()
-    private val disposable = CompositeDisposable()
 
     fun observeCollisions(): Observable<Collision> = collisionPublisher
 
-    override fun onAddedToEngine(engine: Engine) {
-        this.engine = engine
-        disposable.add(engine.observeScreenResize().subscribe { screenSize ->
-            spatialHash = createSpatialHash(screenSize.first, screenSize.second)
-        })
-    }
-
     override fun onRemovedFromEngine() {
-        disposable.clear()
         engine = null
     }
 
@@ -88,6 +78,11 @@ class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
         val transform2 = o2.getComponent<TransformComponent>() ?: return false
 
         return transform1.getRect().overlaps(transform2.getRect())
+    }
+
+    override fun resize(width: Float, height: Float) {
+        super.resize(width, height)
+        spatialHash = createSpatialHash(width, height)
     }
 
     private class Cell(x: Float,

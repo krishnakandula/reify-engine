@@ -15,6 +15,8 @@ abstract class System(val priority: Short = 1,
 
     open fun fixedUpdate(deltaTime: Float, gameObjects: Collection<GameObject>) { }
 
+    open fun resize(width: Float, height: Float) { }
+
     abstract fun getFilters(): List<Class<out Component>>
 
     open fun dispose() { }

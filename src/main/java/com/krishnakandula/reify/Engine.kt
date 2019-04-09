@@ -2,8 +2,6 @@ package com.krishnakandula.reify
 
 import com.krishnakandula.reify.components.Component
 import com.krishnakandula.reify.systems.System
-import io.reactivex.Observable
-import io.reactivex.subjects.BehaviorSubject
 import java.util.TreeSet
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
@@ -26,7 +24,6 @@ class Engine {
     private val componentFamilies = mutableMapOf<Class<out Component>, MutableSet<GameObject>>()
     private val gameObjectsByTag = mutableMapOf<String, MutableSet<GameObject>>()
     private val gameObjectsById = mutableMapOf<String, GameObject>()
-    private val resizeSubject = BehaviorSubject.create<Pair<Float, Float>>()
 
     private var accumulator = 0f
 
@@ -91,17 +88,13 @@ class Engine {
     }
 
     fun resize(width: Float, height: Float) {
-        resizeSubject.onNext(Pair(width, height))
+        gameSystems.forEach { it.resize(width, height) }
     }
 
     fun dispose() {
         gameSystems.forEach(System::dispose)
         gameSystems.clear()
     }
-
-    fun observeScreenResize(): Observable<Pair<Float, Float>> = resizeSubject
-
-    fun getScreenSize(): Pair<Float, Float> = resizeSubject.value!!
 
     private fun filterGameObjects(system: System): Collection<GameObject> {
         val filters = system.getFilters()
