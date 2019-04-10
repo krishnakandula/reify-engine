@@ -3,14 +3,8 @@ package com.krishnakandula.reify
 import com.krishnakandula.reify.components.Component
 import com.krishnakandula.reify.systems.System
 import java.util.TreeSet
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
 
-class Engine {
-
-    companion object {
-        private const val FIXED_INTERVAL = 1f / 100f
-    }
+abstract class Scene {
 
     val gameSystemsMap = HashMap<Class<out System>, System>()
     val gameSystems: MutableSet<System> = TreeSet(Comparator<System> { s1, s2 ->
@@ -25,7 +19,37 @@ class Engine {
     private val gameObjectsByTag = mutableMapOf<String, MutableSet<GameObject>>()
     private val gameObjectsById = mutableMapOf<String, GameObject>()
 
-    private var accumulator = 0f
+    open fun update(deltaTime: Float) {
+        gameSystems.filter(System::enabled)
+                .forEach { it.update(deltaTime, filterGameObjects(it)) }
+    }
+
+    open fun fixedUpdate(deltaTime: Float) {
+        gameSystems.filter(System::enabled)
+                .forEach { it.fixedUpdate(deltaTime, filterGameObjects(it)) }
+    }
+
+    open fun resize(width: Float, height: Float) {
+        gameSystems.forEach { it.resize(width, height) }
+    }
+
+    fun addGameObjects(vararg objs: GameObject) {
+        objs.forEach(this::addGameObject)
+    }
+
+    fun removeGameObjects(vararg objs: GameObject) {
+        objs.forEach(this::removeGameObject)
+    }
+
+    fun getGameObjectById(id: String): GameObject? = gameObjectsById[id]
+
+    fun getGameObjectsByTag(tag: String): Set<GameObject> = gameObjectsByTag.getOrDefault(tag, HashSet())
+
+    open fun dispose() {
+        gameSystems.forEach(System::dispose)
+        gameSystems.clear()
+        gameObjectsById.values.forEach(GameObject::dispose)
+    }
 
     inline fun <reified T : System> addSystem(system: T) {
         if (gameSystems.contains(system) || gameSystemsMap.containsKey(T::class.java)) {
@@ -33,14 +57,14 @@ class Engine {
         }
         gameSystems.add(system)
         gameSystemsMap[T::class.java] = system
-        system.onAddedToEngine(this)
+        system.onAddedToScene(this)
     }
 
     inline fun <reified T : System> removeSystem() {
         val system = gameSystemsMap.remove(T::class.java)
         if (system != null) {
             gameSystems.remove(system)
-            system.onRemovedFromEngine()
+            system.onRemovedFromScene()
         }
     }
 
@@ -48,17 +72,6 @@ class Engine {
         return if (gameSystemsMap.containsKey(T::class.java)) {
             gameSystemsMap[T::class.java] as T
         } else null
-    }
-
-    fun update(deltaTime: Float) {
-        accumulator += deltaTime
-        while (accumulator >= FIXED_INTERVAL) {
-            gameSystems.filter(System::enabled)
-                    .forEach { it.fixedUpdate(FIXED_INTERVAL, filterGameObjects(it)) }
-            accumulator -= FIXED_INTERVAL
-        }
-        gameSystems.filter(System::enabled)
-                .forEach { it.update(deltaTime, filterGameObjects(it)) }
     }
 
     private fun addGameObject(obj: GameObject) {
@@ -69,31 +82,10 @@ class Engine {
         gameObjectsByTag.computeIfAbsent(obj.tag) { HashSet() }.add(obj)
     }
 
-    fun addGameObjects(vararg objs: GameObject) {
-        objs.forEach(this::addGameObject)
-    }
-
-    fun getGameObjectById(id: String): GameObject? = gameObjectsById[id]
-
-    fun getGameObjectsByTag(tag: String): Set<GameObject> = gameObjectsByTag.getOrDefault(tag, HashSet())
-
     private fun removeGameObject(obj: GameObject) {
         componentFamilies.forEach { _, gameObjectsSet -> gameObjectsSet.remove(obj) }
         gameObjectsById.remove(obj.id)
         gameObjectsByTag.getOrDefault(obj.tag, null)?.remove(obj)
-    }
-
-    fun removeGameObjects(vararg objs: GameObject) {
-        objs.forEach(this::removeGameObject)
-    }
-
-    fun resize(width: Float, height: Float) {
-        gameSystems.forEach { it.resize(width, height) }
-    }
-
-    fun dispose() {
-        gameSystems.forEach(System::dispose)
-        gameSystems.clear()
     }
 
     private fun filterGameObjects(system: System): Collection<GameObject> {

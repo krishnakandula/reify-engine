@@ -1,7 +1,6 @@
 package com.krishnakandula.reify.systems.collisions
 
 import com.badlogic.gdx.math.Rectangle
-import com.krishnakandula.reify.Engine
 import com.krishnakandula.reify.GameObject
 import com.krishnakandula.reify.components.CollisionComponent
 import com.krishnakandula.reify.components.TransformComponent
@@ -21,15 +20,10 @@ class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
 
     private val collisionPublisher = PublishSubject.create<Collision>()
 
-    private var engine: Engine? = null
     private var spatialHash: Array<Cell>? = null
     private val collisions = mutableSetOf<Collision>()
 
     fun observeCollisions(): Observable<Collision> = collisionPublisher
-
-    override fun onRemovedFromEngine() {
-        engine = null
-    }
 
     override fun fixedUpdate(deltaTime: Float, gameObjects: Collection<GameObject>) {
         super.fixedUpdate(deltaTime, gameObjects)
