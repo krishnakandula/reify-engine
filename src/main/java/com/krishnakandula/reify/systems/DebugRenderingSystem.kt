@@ -1,13 +1,14 @@
 package com.krishnakandula.reify.systems
 
-import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.Color
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.krishnakandula.reify.GameObject
 import com.krishnakandula.reify.components.Component
 import com.krishnakandula.reify.components.RenderComponent
 import com.krishnakandula.reify.components.TransformComponent
 
-class RenderingSystem(private val spriteBatch: SpriteBatch,
-                      priority: Short = 127) : System(priority) {
+class DebugRenderingSystem(private val shapeRenderer: ShapeRenderer,
+                           priority: Short = 127) : System(priority) {
 
     companion object {
         private val componentList = listOf(RenderComponent::class.java, TransformComponent::class.java)
@@ -16,7 +17,8 @@ class RenderingSystem(private val spriteBatch: SpriteBatch,
     override fun update(deltaTime: Float, gameObjects: Collection<GameObject>) {
         super.update(deltaTime, gameObjects)
 
-        spriteBatch.begin()
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
+        shapeRenderer.color = Color.CORAL
 
         gameObjects.sortedWith(Comparator { o1, o2 ->
             val r1 = o1.getComponent<RenderComponent>() ?: return@Comparator 1
@@ -24,15 +26,13 @@ class RenderingSystem(private val spriteBatch: SpriteBatch,
 
             return@Comparator r2.depth.compareTo(r1.depth)
         }).forEach(this::update)
-        spriteBatch.end()
+        shapeRenderer.end()
     }
 
     private fun update(gameObject: GameObject) {
-        val renderable = gameObject.getComponent<RenderComponent>() ?: return
         val transform = gameObject.getComponent<TransformComponent>() ?: return
 
-        spriteBatch.draw(
-                renderable.texture,
+        shapeRenderer.rect(
                 transform.position.x,
                 transform.position.y,
                 transform.width,
@@ -43,6 +43,6 @@ class RenderingSystem(private val spriteBatch: SpriteBatch,
     override fun getFilters(): List<Class<out Component>> = componentList
 
     override fun dispose() {
-        spriteBatch.dispose()
+        shapeRenderer.dispose()
     }
 }
