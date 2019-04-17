@@ -1,6 +1,7 @@
 package com.krishnakandula.reify.systems
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.math.Matrix4
 import com.krishnakandula.reify.GameObject
 import com.krishnakandula.reify.components.Component
 import com.krishnakandula.reify.components.RenderComponent
@@ -11,6 +12,10 @@ class RenderingSystem(private val spriteBatch: SpriteBatch,
 
     companion object {
         private val componentList = listOf(RenderComponent::class.java, TransformComponent::class.java)
+    }
+
+    fun updateProjectionMatrix(projectionMatrix: Matrix4) {
+        spriteBatch.projectionMatrix = projectionMatrix
     }
 
     override fun update(deltaTime: Float, gameObjects: Collection<GameObject>) {
