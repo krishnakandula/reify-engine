@@ -9,21 +9,44 @@ import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 
 class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
-                      private val spatialHashHeight: Int = SPATIAL_HASH_HEIGHT) : System(120) {
+                      private val spatialHashHeight: Int = SPATIAL_HASH_HEIGHT,
+                      private var boundingBoxX: Float = DEFAULT_X_OFFSET,
+                      private var boundingBoxY: Float = DEFAULT_Y_OFFSET) : System(120) {
 
     companion object {
         private const val SPATIAL_HASH_WIDTH = 6
         private const val SPATIAL_HASH_HEIGHT = 6
+        private const val DEFAULT_X_OFFSET = 0f
+        private const val DEFAULT_Y_OFFSET = 0f
 
         private val filters = listOf(CollisionComponent::class.java, TransformComponent::class.java)
     }
 
     private val collisionPublisher = PublishSubject.create<Collision>()
-
-    private var spatialHash: Array<Cell>? = null
     private val collisions = mutableSetOf<Collision>()
+    private var spatialHash: Array<Cell>? = null
 
     fun observeCollisions(): Observable<Collision> = collisionPublisher
+
+    fun setBoundingBoxX(x: Float) {
+        this.boundingBoxX = x
+        this.spatialHash = createSpatialHash(spatialHashWidth.toFloat(), spatialHashHeight.toFloat())
+    }
+
+    fun setBoundingBoxY(y: Float) {
+        this.boundingBoxY = y
+        this.spatialHash = createSpatialHash(spatialHashWidth.toFloat(), spatialHashHeight.toFloat())
+    }
+
+    fun getBoundingBoxHeight(): Float {
+        val cell = spatialHash?.first() ?: return 0f
+        return cell.height * spatialHashHeight
+    }
+
+    fun getBoundingBoxWidth(): Float {
+        val cell = spatialHash?.first() ?: return 0f
+        return cell.width * spatialHashWidth
+    }
 
     override fun fixedUpdate(deltaTime: Float, gameObjects: Collection<GameObject>) {
         super.fixedUpdate(deltaTime, gameObjects)
@@ -52,7 +75,8 @@ class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
 
     override fun getFilters() = filters
 
-    private fun createSpatialHash(viewportWidth: Float, viewportHeight: Float): Array<Cell> {
+    private fun createSpatialHash(viewportWidth: Float,
+                                  viewportHeight: Float): Array<Cell> {
         val cellWidth = viewportWidth / spatialHashWidth
         val cellHeight = viewportHeight / spatialHashHeight
 
@@ -63,7 +87,7 @@ class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
             val row = index / rows
             val col = index % rows
 
-            return@Array Cell(row * cellWidth, col * cellHeight, cellWidth, cellHeight)
+            return@Array Cell((row * cellWidth) + boundingBoxX, (col * cellHeight) + boundingBoxY, cellWidth, cellHeight)
         }
     }
 
@@ -81,8 +105,8 @@ class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
 
     private class Cell(x: Float,
                        y: Float,
-                       width: Float,
-                       height: Float) {
+                       val width: Float,
+                       val height: Float) {
 
         private val gameObjects = mutableListOf<GameObject>()
         private val rect = Rectangle(x, y, width, height)
