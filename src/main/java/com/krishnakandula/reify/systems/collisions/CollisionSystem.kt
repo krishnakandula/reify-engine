@@ -8,10 +8,12 @@ import com.krishnakandula.reify.systems.System
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 
-class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
-                      private val spatialHashHeight: Int = SPATIAL_HASH_HEIGHT,
+class CollisionSystem(private var boundingBoxWidth: Float,
+                      private var boundingBoxHeight: Float,
                       private var boundingBoxX: Float = DEFAULT_X_OFFSET,
-                      private var boundingBoxY: Float = DEFAULT_Y_OFFSET) : System(120) {
+                      private var boundingBoxY: Float = DEFAULT_Y_OFFSET,
+                      private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
+                      private val spatialHashHeight: Int = SPATIAL_HASH_HEIGHT) : System(120) {
 
     companion object {
         private const val SPATIAL_HASH_WIDTH = 6
@@ -24,29 +26,37 @@ class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
 
     private val collisionPublisher = PublishSubject.create<Collision>()
     private val collisions = mutableSetOf<Collision>()
-    private var spatialHash: Array<Cell>? = null
+    private var spatialHash: Array<Cell> = createSpatialHash()
 
     fun observeCollisions(): Observable<Collision> = collisionPublisher
 
+    fun setBoundingBoxWidth(width: Float) {
+        this.boundingBoxWidth = width
+        this.spatialHash = createSpatialHash()
+    }
+
+    fun setBoundingBoxHeight(height: Float) {
+        this.boundingBoxHeight = height
+        this.spatialHash = createSpatialHash()
+    }
+
     fun setBoundingBoxX(x: Float) {
         this.boundingBoxX = x
-        this.spatialHash = createSpatialHash(spatialHashWidth.toFloat(), spatialHashHeight.toFloat())
+        this.spatialHash = createSpatialHash()
     }
 
     fun setBoundingBoxY(y: Float) {
         this.boundingBoxY = y
-        this.spatialHash = createSpatialHash(spatialHashWidth.toFloat(), spatialHashHeight.toFloat())
+        this.spatialHash = createSpatialHash()
     }
 
-    fun getBoundingBoxHeight(): Float {
-        val cell = spatialHash?.first() ?: return 0f
-        return cell.height * spatialHashHeight
-    }
+    fun getBoundingBoxHeight(): Float = this.boundingBoxHeight
 
-    fun getBoundingBoxWidth(): Float {
-        val cell = spatialHash?.first() ?: return 0f
-        return cell.width * spatialHashWidth
-    }
+    fun getBoundingBoxWidth(): Float = this.boundingBoxWidth
+
+    fun getBoundingBoxX(): Float = this.boundingBoxX
+
+    fun getBoundingBoxY(): Float = this.boundingBoxY
 
     override fun fixedUpdate(deltaTime: Float, gameObjects: Collection<GameObject>) {
         super.fixedUpdate(deltaTime, gameObjects)
@@ -75,10 +85,9 @@ class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
 
     override fun getFilters() = filters
 
-    private fun createSpatialHash(viewportWidth: Float,
-                                  viewportHeight: Float): Array<Cell> {
-        val cellWidth = viewportWidth / spatialHashWidth
-        val cellHeight = viewportHeight / spatialHashHeight
+    private fun createSpatialHash(): Array<Cell> {
+        val cellWidth = boundingBoxWidth / spatialHashWidth
+        val cellHeight = boundingBoxHeight / spatialHashHeight
 
         val rows = spatialHashWidth
         val cols = spatialHashHeight
@@ -96,11 +105,6 @@ class CollisionSystem(private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
         val transform2 = o2.getComponent<TransformComponent>() ?: return false
 
         return transform1.getRect().overlaps(transform2.getRect())
-    }
-
-    override fun resize(width: Float, height: Float) {
-        super.resize(width, height)
-        spatialHash = createSpatialHash(width, height)
     }
 
     private class Cell(x: Float,
