@@ -36,13 +36,11 @@ class RenderingSystem(private val spriteBatch: SpriteBatch,
         val renderable = gameObject.getComponent<RenderComponent>() ?: return
         val transform = gameObject.getComponent<TransformComponent>() ?: return
 
-        spriteBatch.draw(
-                renderable.texture,
-                transform.position.x,
-                transform.position.y,
-                transform.width,
-                transform.height)
+        val spritePositionX = transform.position.x + renderable.spriteOffset.x
+        val spritePositionY = transform.position.y + renderable.spriteOffset.y
 
+        renderable.sprite.setPosition(spritePositionX, spritePositionY)
+        renderable.sprite.draw(spriteBatch)
     }
 
     override fun getFilters(): List<Class<out Component>> = componentList

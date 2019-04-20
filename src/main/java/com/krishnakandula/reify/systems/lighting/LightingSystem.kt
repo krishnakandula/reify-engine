@@ -12,13 +12,41 @@ import com.krishnakandula.reify.systems.lighting.lights.RayHandler
 
 class LightingSystem(world: World,
                      private val camera: OrthographicCamera,
-                     private val viewport: Viewport) : System() {
+                     private val viewport: Viewport,
+                     priority: Short = 128) : System(priority) {
 
     companion object {
         private val componentList = listOf(LightingComponent::class.java)
     }
 
     private val rayHandler = RayHandler(world)
+
+    fun useDiffuseLighting(useDiffuse: Boolean) {
+        RayHandler.isDiffuse = useDiffuse
+    }
+
+    fun setAmbientLighting(r: Float, g: Float, b: Float, a: Float) {
+        rayHandler.setAmbientLight(r, g, b, a)
+    }
+
+    fun useBlur(useBlur: Boolean, blurNum: Int = 1) {
+        rayHandler.setBlur(useBlur)
+        if (useBlur) {
+            rayHandler.setBlurNum(blurNum)
+        }
+    }
+
+    fun setCulling(useCulling: Boolean) {
+        rayHandler.setCulling(useCulling)
+    }
+
+    fun useGammaCorrection(useGammaCorrection: Boolean) {
+        RayHandler.setGammaCorrection(useGammaCorrection)
+    }
+
+    fun useShadows(useShadows: Boolean) {
+        rayHandler.setShadows(useShadows)
+    }
 
     override fun getFilters(): List<Class<out Component>> = componentList
 
