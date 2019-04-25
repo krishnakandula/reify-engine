@@ -7,7 +7,7 @@ import java.util.TreeSet
 abstract class Scene {
 
     val gameSystemsMap = HashMap<Class<out System>, System>()
-    val gameSystems: MutableSet<System> = TreeSet(Comparator<System> { s1, s2 ->
+    val gameSystems = TreeSet(Comparator<System> { s1, s2 ->
         return@Comparator if (s1.priority == s2.priority) {
             1
         } else {
