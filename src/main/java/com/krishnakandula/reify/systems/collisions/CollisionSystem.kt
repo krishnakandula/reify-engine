@@ -1,10 +1,16 @@
 package com.krishnakandula.reify.systems.collisions
 
+import com.badlogic.gdx.math.Circle
+import com.badlogic.gdx.math.Ellipse
+import com.badlogic.gdx.math.Intersector
+import com.badlogic.gdx.math.Polygon
 import com.badlogic.gdx.math.Rectangle
 import com.krishnakandula.reify.GameObject
-import com.krishnakandula.reify.components.CollisionComponent
+import com.krishnakandula.reify.components.HitboxComponent
 import com.krishnakandula.reify.components.TransformComponent
+import com.krishnakandula.reify.overlaps
 import com.krishnakandula.reify.systems.System
+import com.krishnakandula.reify.toPolygon
 import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
 
@@ -21,7 +27,7 @@ class CollisionSystem(private var boundingBoxWidth: Float,
         private const val DEFAULT_X_OFFSET = 0f
         private const val DEFAULT_Y_OFFSET = 0f
 
-        private val filters = listOf(CollisionComponent::class.java, TransformComponent::class.java)
+        private val filters = listOf(HitboxComponent::class.java, TransformComponent::class.java)
     }
 
     private val collisionPublisher = PublishSubject.create<Collision>()
@@ -67,6 +73,7 @@ class CollisionSystem(private var boundingBoxWidth: Float,
     }
 
     private fun fixedUpdate(gameObject: GameObject) {
+        updateHitbox(gameObject)
         spatialHash?.filter { cell -> cell.contains(gameObject) }
                 ?.forEach { cell ->
                     val gameObjects = cell.getGameObjects()
@@ -107,6 +114,30 @@ class CollisionSystem(private var boundingBoxWidth: Float,
         return transform1.getRect().overlaps(transform2.getRect())
     }
 
+    private fun updateHitbox(gameObject: GameObject) {
+        val transform = gameObject.getComponent<TransformComponent>() ?: return
+        val hitbox = gameObject.getComponent<HitboxComponent>() ?: return
+        val shape = hitbox.shape
+
+        when(shape) {
+            is Rectangle -> {
+                shape.setCenter(
+                        transform.position.x + hitbox.offsetX,
+                        transform.position.y + hitbox.offsetY)
+            }
+            is Polygon -> {
+                shape.setPosition(
+                        transform.position.x + hitbox.offsetX,
+                        transform.position.y + hitbox.offsetY)
+            }
+            is Ellipse -> {
+                shape.setPosition(
+                        transform.position.x + hitbox.offsetX,
+                        transform.position.y + hitbox.offsetY)
+            }
+        }
+    }
+
     private class Cell(x: Float,
                        y: Float,
                        val width: Float,
@@ -114,6 +145,7 @@ class CollisionSystem(private var boundingBoxWidth: Float,
 
         private val gameObjects = mutableListOf<GameObject>()
         private val rect = Rectangle(x, y, width, height)
+        private val poly = rect.toPolygon()
 
         fun getGameObjects(): List<GameObject> = gameObjects
 
@@ -122,12 +154,24 @@ class CollisionSystem(private var boundingBoxWidth: Float,
         }
 
         /**
-         * Returns if a part of a GameObject is located within the cell
+         * Returns if a part of the GameObject's hitbox is located within the cell
          */
         fun contains(obj: GameObject): Boolean {
-            val objTransform = obj.getComponent<TransformComponent>() ?: return false
+            val objHitbox = obj.getComponent<HitboxComponent>() ?: return false
+            val objShape = objHitbox.shape
 
-            return rect.overlaps(objTransform.getRect())
+            return when(objShape) {
+                is Rectangle -> {
+                    objShape.overlaps(rect)
+                }
+                is Polygon -> {
+                    Intersector.overlapConvexPolygons(objShape, poly)
+                }
+                is Circle -> {
+                    poly.overlaps(objShape)
+                }
+                else -> false
+            }
         }
 
         fun addGameObject(obj: GameObject) {

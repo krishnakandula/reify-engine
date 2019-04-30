@@ -9,7 +9,7 @@ import com.krishnakandula.reify.components.RenderComponent
 import com.krishnakandula.reify.components.TransformComponent
 
 class DebugRenderingSystem(private val shapeRenderer: ShapeRenderer,
-                           priority: Short = 127) : System(priority) {
+                                priority: Short = 127) : System(priority) {
 
     companion object {
         private val componentList = listOf(RenderComponent::class.java, TransformComponent::class.java)
