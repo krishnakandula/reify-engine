@@ -11,6 +11,10 @@ fun Rectangle.toPolygon(): Polygon {
     return createRectanglePolygon(x, y, width, height)
 }
 
+fun Rectangle.overlaps(x2: Float, y2: Float, width2: Float, height2: Float): Boolean {
+    return x < x2 + width2 && x + width > x2 && y < y2 + height2 && y + height > y2
+}
+
 fun createRectanglePolygon(x: Float, y: Float, width: Float, height: Float): Polygon {
     return Polygon(floatArrayOf(x, y, x + width, y, x, y + height, x + width, y + height))
 }
