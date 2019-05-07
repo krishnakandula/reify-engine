@@ -27,8 +27,8 @@ class RenderingSystem(private val spriteBatch: SpriteBatch,
     override fun update(deltaTime: Float, gameObjects: Collection<GameObject>) {
         super.update(deltaTime, gameObjects)
 
-        viewableArea.setX(camera.position.x)
-        viewableArea.setY(camera.position.y)
+        viewableArea.setX(camera.position.x - (camera.viewportWidth / 2))
+        viewableArea.setY(camera.position.y - (camera.viewportHeight / 2))
         viewableArea.setWidth(camera.viewportWidth)
         viewableArea.setHeight(camera.viewportHeight)
 
@@ -54,6 +54,7 @@ class RenderingSystem(private val spriteBatch: SpriteBatch,
         val spritePositionY = transform.position.y + renderable.spriteOffset.y
 
         renderable.sprite.setPosition(spritePositionX, spritePositionY)
+        renderable.sprite.rotation = renderable.rotation
         renderable.sprite.draw(spriteBatch)
     }
 
