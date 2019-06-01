@@ -6,17 +6,14 @@ import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.math.Intersector
 
-
 fun Rectangle.toPolygon(): Polygon {
-    return createRectanglePolygon(x, y, width, height)
+    return Polygon(floatArrayOf(0f, 0f, width, 0f, width, height, 0f, height)).apply {
+        setPosition(x,y)
+    }
 }
 
 fun Rectangle.overlaps(x2: Float, y2: Float, width2: Float, height2: Float): Boolean {
     return x < x2 + width2 && x + width > x2 && y < y2 + height2 && y + height > y2
-}
-
-fun createRectanglePolygon(x: Float, y: Float, width: Float, height: Float): Polygon {
-    return Polygon(floatArrayOf(x, y, x + width, y, x, y + height, x + width, y + height))
 }
 
 fun Polygon.overlaps(circle: Circle): Boolean {
