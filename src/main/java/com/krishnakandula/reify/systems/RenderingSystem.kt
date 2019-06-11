@@ -38,7 +38,7 @@ class RenderingSystem(private val spriteBatch: SpriteBatch,
             val r1 = o1.getComponent<RenderComponent>() ?: return@Comparator 1
             val r2 = o2.getComponent<RenderComponent>() ?: return@Comparator -1
 
-            return@Comparator r2.depth.compareTo(r1.depth)
+            return@Comparator r1.depth.compareTo(r2.depth)
         }).filter { gameObject ->
             val transform = gameObject.getComponent<TransformComponent>() ?: return@filter false
             return@filter viewableArea.overlaps(transform.position.x, transform.position.y, transform.width, transform.height)
@@ -53,6 +53,7 @@ class RenderingSystem(private val spriteBatch: SpriteBatch,
         val spritePositionX = transform.position.x + renderable.spriteOffset.x
         val spritePositionY = transform.position.y + renderable.spriteOffset.y
 
+        renderable.sprite.setScale(transform.width / renderable.sprite.width)
         renderable.sprite.setPosition(spritePositionX, spritePositionY)
         renderable.sprite.rotation = renderable.rotation
         renderable.sprite.draw(spriteBatch)
