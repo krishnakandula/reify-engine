@@ -6,8 +6,8 @@ import java.util.TreeSet
 
 abstract class Scene {
 
-    val gameSystemsMap = HashMap<Class<out System>, System>()
-    val gameSystems = TreeSet(Comparator<System> { s1, s2 ->
+    protected val gameSystemsMap = HashMap<Class<out System>, System>()
+    protected val gameSystems = TreeSet(Comparator<System> { s1, s2 ->
         return@Comparator if (s1.priority == s2.priority) {
             1
         } else {
@@ -15,7 +15,7 @@ abstract class Scene {
         }
     })
 
-    private val componentFamilies = mutableMapOf<Class<out Component>, MutableSet<GameObject>>()
+    protected val componentFamilies = mutableMapOf<Class<out Component>, MutableSet<GameObject>>()
     private val gameObjectsByTag = mutableMapOf<String, MutableSet<GameObject>>()
     private val gameObjectsById = mutableMapOf<String, GameObject>()
 
@@ -39,6 +39,29 @@ abstract class Scene {
 
     fun removeGameObjects(vararg objs: GameObject) {
         objs.forEach(this::removeGameObject)
+    }
+
+    inline fun <reified T : Component> addComponent(component: T, gameObject: GameObject): Boolean {
+        if (gameObject.hasComponent<T>()) {
+            return false
+        }
+
+        removeComponent<T>(gameObject)
+        gameObject.addComponent(component)
+        componentFamilies.computeIfAbsent(T::class.java) { HashSet() }.add(gameObject)
+
+        return true
+    }
+
+    inline fun <reified T : Component> removeComponent(gameObject: GameObject): Boolean {
+        if (!gameObject.hasComponent<T>()) {
+            return false
+        }
+
+        gameObject.removeComponent<T>()
+        componentFamilies[T::class.java]?.remove(gameObject)
+
+        return true
     }
 
     fun getGameObjectById(id: String): GameObject? = gameObjectsById[id]
@@ -76,14 +99,14 @@ abstract class Scene {
 
     private fun addGameObject(obj: GameObject) {
         obj.getComponents().forEach { component ->
-            componentFamilies.computeIfAbsent(component.javaClass) { HashSet() }.add(obj)
+            addComponent(component, obj)
         }
         gameObjectsById[obj.id] = obj
         gameObjectsByTag.computeIfAbsent(obj.tag) { HashSet() }.add(obj)
     }
 
     private fun removeGameObject(obj: GameObject) {
-        componentFamilies.forEach { _, gameObjectsSet -> gameObjectsSet.remove(obj) }
+        componentFamilies.forEach { (_, gameObjectsSet) -> gameObjectsSet.remove(obj) }
         gameObjectsById.remove(obj.id)
         gameObjectsByTag.getOrDefault(obj.tag, null)?.remove(obj)
     }
