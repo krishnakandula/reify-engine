@@ -13,7 +13,9 @@ class TransformComponentBuilder(var position: Vector2 = Vector2.Zero,
     fun build() = TransformComponent(position, width, height)
 }
 
-fun GameObjectBuilder.transform(setup: TransformComponentBuilder.() -> Unit) {
+fun GameObjectBuilder.transform(setup: TransformComponentBuilder.() -> Unit): TransformComponent {
     val builder = TransformComponentBuilder()
     builder.setup()
+
+    return builder.build()
 }

@@ -10,7 +10,9 @@ class MovementComponentBuilder(var velocity: Vector2 = Vector2.Zero) {
     fun build() = MovementComponent(velocity)
 }
 
-fun GameObjectBuilder.movement(setup: MovementComponentBuilder.() -> Unit) {
+fun GameObjectBuilder.movement(setup: MovementComponentBuilder.() -> Unit): MovementComponent {
     val builder = MovementComponentBuilder()
     builder.setup()
+
+    return builder.build()
 }
