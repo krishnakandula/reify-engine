@@ -18,6 +18,7 @@ abstract class Scene {
     protected val componentFamilies = mutableMapOf<Class<out Component>, MutableSet<GameObject>>()
     private val gameObjectsByTag = mutableMapOf<String, MutableSet<GameObject>>()
     private val gameObjectsById = mutableMapOf<String, GameObject>()
+    private val componentMap = mutableMapOf<String, MutableMap<Class<out Component>, Component>>()
 
     open fun update(deltaTime: Float) {
         gameSystems.filter(System::enabled)
@@ -41,27 +42,61 @@ abstract class Scene {
         objs.forEach(this::removeGameObject)
     }
 
-    inline fun <reified T : Component> addComponent(component: T, gameObject: GameObject): Boolean {
-        if (gameObject.hasComponent<T>()) {
+    fun hasGameObject(gameObject: GameObject): Boolean {
+        return gameObjectsById.containsKey(gameObject.id)
+    }
+
+    inline fun <reified T : Component> hasComponent(gameObject: GameObject): Boolean {
+        return hasComponent(T::class.java, gameObject)
+    }
+
+    fun <T : Component> hasComponent(componentClazz: Class<T>, gameObject: GameObject): Boolean {
+        if (!hasGameObject(gameObject)) {
             return false
         }
 
-        removeComponent<T>(gameObject)
-        gameObject.addComponent(component)
-        componentFamilies.computeIfAbsent(T::class.java) { HashSet() }.add(gameObject)
+        return getComponents(gameObject).containsKey(componentClazz)
+    }
+
+    fun getComponents(gameObject: GameObject): Map<Class<out Component>, Component> {
+        return componentMap.getOrDefault(gameObject.id, mutableMapOf())
+    }
+
+    inline fun <reified T : Component> getComponent(gameObject: GameObject): T? {
+        if (!hasGameObject(gameObject) || !hasComponent<T>(gameObject)) {
+            return null
+        }
+        return getComponents(gameObject)[T::class.java] as T
+    }
+
+    inline fun <reified T : Component> addComponent(component: T, gameObject: GameObject): Boolean {
+        return addComponent(T::class.java, component, gameObject)
+    }
+
+    fun <T : Component> addComponent(componentClazz: Class<T>, component: T, gameObject: GameObject): Boolean {
+        if (!hasGameObject(gameObject) || hasComponent(componentClazz, gameObject)) {
+            return false
+        }
+
+        componentFamilies.computeIfAbsent(componentClazz) { mutableSetOf() }.add(gameObject)
+        componentMap.computeIfAbsent(gameObject.id) { mutableMapOf() }[componentClazz] = component
 
         return true
     }
 
     inline fun <reified T : Component> removeComponent(gameObject: GameObject): Boolean {
-        if (!gameObject.hasComponent<T>()) {
+        return removeComponent(T::class.java, gameObject)
+    }
+
+    fun <T : Component> removeComponent(componentClazz: Class<T>, gameObject: GameObject): Boolean {
+        if (!hasComponent(componentClazz, gameObject)) {
             return false
         }
 
-        gameObject.removeComponent<T>()
-        componentFamilies[T::class.java]?.remove(gameObject)
+        componentFamilies[componentClazz]?.remove(gameObject)
+        componentMap[gameObject.id]?.remove(componentClazz)
 
-        return true
+        return false
     }
 
     fun getGameObjectById(id: String): GameObject? = gameObjectsById[id]
@@ -71,7 +106,6 @@ abstract class Scene {
     open fun dispose() {
         gameSystems.forEach(System::dispose)
         gameSystems.clear()
-        gameObjectsById.values.forEach(GameObject::dispose)
     }
 
     inline fun <reified T : System> addSystem(system: T) {
@@ -98,9 +132,6 @@ abstract class Scene {
     }
 
     private fun addGameObject(obj: GameObject) {
-        obj.getComponents().forEach { component ->
-            addComponent(component, obj)
-        }
         gameObjectsById[obj.id] = obj
         gameObjectsByTag.computeIfAbsent(obj.tag) { HashSet() }.add(obj)
     }

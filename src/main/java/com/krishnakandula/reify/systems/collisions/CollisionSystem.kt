@@ -6,6 +6,7 @@ import com.badlogic.gdx.math.Intersector
 import com.badlogic.gdx.math.Polygon
 import com.badlogic.gdx.math.Rectangle
 import com.krishnakandula.reify.GameObject
+import com.krishnakandula.reify.Scene
 import com.krishnakandula.reify.components.HitboxComponent
 import com.krishnakandula.reify.components.TransformComponent
 import com.krishnakandula.reify.overlaps
@@ -33,6 +34,7 @@ class CollisionSystem(private var boundingBoxWidth: Float,
     private val collisionPublisher = PublishSubject.create<Collision>()
     private val collisions = mutableSetOf<Collision>()
     private var spatialHash: Array<Cell> = createSpatialHash()
+    private var scene: Scene? = null
 
     fun observeCollisions(): Observable<Collision> = collisionPublisher
 
@@ -63,6 +65,16 @@ class CollisionSystem(private var boundingBoxWidth: Float,
     fun getBoundingBoxX(): Float = this.boundingBoxX
 
     fun getBoundingBoxY(): Float = this.boundingBoxY
+
+    override fun onAddedToScene(scene: Scene) {
+        super.onAddedToScene(scene)
+        this.scene = scene
+    }
+
+    override fun onRemovedFromScene() {
+        super.onRemovedFromScene()
+        this.scene = null
+    }
 
     override fun fixedUpdate(deltaTime: Float, gameObjects: Collection<GameObject>) {
         super.fixedUpdate(deltaTime, gameObjects)
@@ -108,15 +120,15 @@ class CollisionSystem(private var boundingBoxWidth: Float,
     }
 
     private fun checkCollision(o1: GameObject, o2: GameObject): Boolean {
-        val transform1 = o1.getComponent<TransformComponent>() ?: return false
-        val transform2 = o2.getComponent<TransformComponent>() ?: return false
+        val transform1 = scene?.getComponent<TransformComponent>(o1) ?: return false
+        val transform2 = scene?.getComponent<TransformComponent>(o2) ?: return false
 
         return transform1.getRect().overlaps(transform2.getRect())
     }
 
     private fun updateHitbox(gameObject: GameObject) {
-        val transform = gameObject.getComponent<TransformComponent>() ?: return
-        val hitbox = gameObject.getComponent<HitboxComponent>() ?: return
+        val transform = scene?.getComponent<TransformComponent>(gameObject) ?: return
+        val hitbox = scene?.getComponent<HitboxComponent>(gameObject) ?: return
         val shape = hitbox.shape
 
         when(shape) {
@@ -138,7 +150,7 @@ class CollisionSystem(private var boundingBoxWidth: Float,
         }
     }
 
-    private class Cell(x: Float,
+    private inner class Cell(x: Float,
                        y: Float,
                        val width: Float,
                        val height: Float) {
@@ -157,7 +169,7 @@ class CollisionSystem(private var boundingBoxWidth: Float,
          * Returns if a part of the GameObject's hitbox is located within the cell
          */
         fun contains(obj: GameObject): Boolean {
-            val objHitbox = obj.getComponent<HitboxComponent>() ?: return false
+            val objHitbox = scene?.getComponent<HitboxComponent>(obj) ?: return false
             val objShape = objHitbox.shape
 
             return when(objShape) {

@@ -439,7 +439,7 @@ public class RayHandler implements Disposable {
      *
      * <p>Default = Color(0, 0, 0, 0)
      *
-     * @param ambientLightColor color whose RGB components specify the shadows coloring and
+     * @param ambientLightColor color whose RGB componentMap specify the shadows coloring and
      *                          alpha specify shadows brightness
      * @see #setAmbientLight(float)
      * @see #setAmbientLight(float, float, float, float)

@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Rectangle
 import com.krishnakandula.reify.GameObject
+import com.krishnakandula.reify.Scene
 import com.krishnakandula.reify.components.Component
 import com.krishnakandula.reify.components.RenderComponent
 import com.krishnakandula.reify.components.TransformComponent
@@ -20,9 +21,20 @@ class DebugRenderingSystem(private val shapeRenderer: ShapeRenderer,
     }
 
     private val viewableArea = Rectangle()
+    private var scene: Scene? = null
 
     fun updateProjectionMatrix(projectionMatrix: Matrix4) {
         shapeRenderer.projectionMatrix = projectionMatrix
+    }
+
+    override fun onAddedToScene(scene: Scene) {
+        super.onAddedToScene(scene)
+        this.scene = scene
+    }
+
+    override fun onRemovedFromScene() {
+        super.onRemovedFromScene()
+        this.scene = null
     }
 
     override fun update(deltaTime: Float, gameObjects: Collection<GameObject>) {
@@ -37,19 +49,19 @@ class DebugRenderingSystem(private val shapeRenderer: ShapeRenderer,
         shapeRenderer.color = Color.CORAL
 
         gameObjects.sortedWith(Comparator { o1, o2 ->
-            val r1 = o1.getComponent<RenderComponent>() ?: return@Comparator 1
-            val r2 = o2.getComponent<RenderComponent>() ?: return@Comparator -1
+            val r1 = scene?.getComponent<RenderComponent>(o1) ?: return@Comparator 1
+            val r2 = scene?.getComponent<RenderComponent>(o2) ?: return@Comparator -1
 
             return@Comparator r2.depth.compareTo(r1.depth)
         }).filter { gameObject ->
-            val transform = gameObject.getComponent<TransformComponent>() ?: return@filter false
+            val transform = scene?.getComponent<TransformComponent>(gameObject) ?: return@filter false
             return@filter viewableArea.overlaps(transform.position.x, transform.position.y, transform.width, transform.height)
         }.forEach(this::update)
         shapeRenderer.end()
     }
 
     private fun update(gameObject: GameObject) {
-        val transform = gameObject.getComponent<TransformComponent>() ?: return
+        val transform = scene?.getComponent<TransformComponent>(gameObject) ?: return
         shapeRenderer.rect(
                 transform.position.x,
                 transform.position.y,
