@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.krishnakandula'
-version '1.79-SNAPSHOT'
+version '1.81-SNAPSHOT'
 
 sourceCompatibility = 1.8
 
