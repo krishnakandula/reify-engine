@@ -1,6 +1,5 @@
 package com.krishnakandula.reify.systems.collisions
 
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.math.Circle
 import com.badlogic.gdx.math.Intersector
 import com.badlogic.gdx.math.Polygon
@@ -19,6 +18,7 @@ import io.reactivex.subjects.PublishSubject
 
 class CollisionSystem(private var boundingBoxWidth: Float,
                       private var boundingBoxHeight: Float,
+                      private val continuous: Boolean = true,
                       private var boundingBoxX: Float = DEFAULT_X_OFFSET,
                       private var boundingBoxY: Float = DEFAULT_Y_OFFSET,
                       private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
@@ -69,6 +69,13 @@ class CollisionSystem(private var boundingBoxWidth: Float,
 
     fun getBoundingBoxY(): Float = this.boundingBoxY
 
+    fun checkCollision(o1: GameObject, o2: GameObject): Boolean {
+        val hitBox1 = scene?.getComponent<HitboxComponent>(o1) ?: return false
+        val hitBox2 = scene?.getComponent<HitboxComponent>(o2) ?: return false
+
+        return hitBox1.shape.collides(hitBox2.shape)
+    }
+
     override fun onAddedToScene(scene: Scene) {
         super.onAddedToScene(scene)
         this.scene = scene
@@ -84,8 +91,10 @@ class CollisionSystem(private var boundingBoxWidth: Float,
 
         spatialHash.forEach(Cell::clear)
         gameObjects.forEach(this::fixedUpdate)
-        previousFrameCollisions.clear()
-        previousFrameCollisions.addAll(currentFrameCollisions)
+        if (!continuous) {
+            previousFrameCollisions.clear()
+            previousFrameCollisions.addAll(currentFrameCollisions)
+        }
         currentFrameCollisions.clear()
     }
 
@@ -96,12 +105,11 @@ class CollisionSystem(private var boundingBoxWidth: Float,
                 .forEach { cell ->
                     val gameObjects = cell.getGameObjects()
                     gameObjects.forEach { obj ->
-                        Gdx.app.log("collisions", "$gameObject $obj")
                         if (checkCollision(gameObject, obj)) {
                             val collision = Collision(gameObject, obj)
                             if (!currentFrameCollisions.contains(collision)) {
                                 currentFrameCollisions.add(collision)
-                                if (!previousFrameCollisions.contains(collision)) {
+                                if (continuous || (!previousFrameCollisions.contains(collision))) {
                                     collisionPublisher.onNext(collision)
                                 }
                             }
@@ -126,15 +134,6 @@ class CollisionSystem(private var boundingBoxWidth: Float,
 
             return@Array Cell((row * cellWidth) + boundingBoxX, (col * cellHeight) + boundingBoxY, cellWidth, cellHeight)
         }
-    }
-
-    private fun checkCollision(o1: GameObject, o2: GameObject): Boolean {
-        val hitBox1 = scene?.getComponent<HitboxComponent>(o1) ?: return false
-        val hitBox2 = scene?.getComponent<HitboxComponent>(o2) ?: return false
-
-        val collides = hitBox1.shape.collides(hitBox2.shape)
-        Gdx.app.log("Collisions", "Collides: $collides")
-        return collides
     }
 
     private fun updateHitBox(gameObject: GameObject) {
