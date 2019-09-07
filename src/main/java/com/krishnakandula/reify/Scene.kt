@@ -1,10 +1,13 @@
 package com.krishnakandula.reify
 
+import com.badlogic.gdx.graphics.g2d.SpriteBatch
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.krishnakandula.reify.components.Component
 import com.krishnakandula.reify.systems.System
 import java.util.TreeSet
 
-abstract class Scene {
+abstract class Scene(protected val spriteBatch: SpriteBatch,
+                     protected val shapeRenderer: ShapeRenderer) {
 
     protected val gameSystemsMap = HashMap<Class<out System>, System>()
     protected val gameSystems = TreeSet(Comparator<System> { s1, s2 ->
@@ -15,7 +18,7 @@ abstract class Scene {
         }
     })
 
-    protected val componentFamilies = mutableMapOf<Class<out Component>, MutableSet<GameObject>>()
+    private val componentFamilies = mutableMapOf<Class<out Component>, MutableSet<GameObject>>()
     private val gameObjectsByTag = mutableMapOf<String, MutableSet<GameObject>>()
     private val gameObjectsById = mutableMapOf<String, GameObject>()
     private val componentMap = mutableMapOf<String, MutableMap<Class<out Component>, Component>>()
@@ -32,10 +35,6 @@ abstract class Scene {
 
     open fun resize(width: Float, height: Float) {
         gameSystems.forEach { it.resize(width, height) }
-    }
-
-    fun addGameObjects(vararg objs: GameObject) {
-        objs.forEach(this::addGameObject)
     }
 
     fun removeGameObjects(vararg objs: GameObject) {
@@ -108,6 +107,14 @@ abstract class Scene {
         gameSystems.clear()
     }
 
+    fun <T : System> hasSystem(systemType: Class<T>): Boolean {
+        return gameSystemsMap.containsKey(systemType)
+    }
+
+    inline fun <reified T : System> hasSystem(): Boolean {
+        return hasSystem(T::class.java)
+    }
+
     inline fun <reified T : System> addSystem(system: T) {
         if (gameSystems.contains(system) || gameSystemsMap.containsKey(T::class.java)) {
             return
@@ -129,6 +136,13 @@ abstract class Scene {
         return if (gameSystemsMap.containsKey(T::class.java)) {
             gameSystemsMap[T::class.java] as T
         } else null
+    }
+
+    fun createGameObject(tag: String = ""): GameObject {
+        val gameObject = GameObject(tag)
+        addGameObject(gameObject)
+
+        return gameObject
     }
 
     private fun addGameObject(obj: GameObject) {
