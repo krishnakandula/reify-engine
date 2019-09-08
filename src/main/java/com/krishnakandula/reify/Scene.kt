@@ -1,5 +1,6 @@
 package com.krishnakandula.reify
 
+import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.krishnakandula.reify.components.Component
@@ -72,7 +73,7 @@ abstract class Scene(protected val spriteBatch: SpriteBatch,
         return addComponent(T::class.java, component, gameObject)
     }
 
-    fun <T : Component> addComponent(componentClazz: Class<T>, component: T, gameObject: GameObject): Boolean {
+    fun <T : Component> addComponent(componentClazz: Class<out T>, component: T, gameObject: GameObject): Boolean {
         if (!hasGameObject(gameObject) || hasComponent(componentClazz, gameObject)) {
             return false
         }
