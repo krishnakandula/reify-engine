@@ -6,7 +6,7 @@ import com.badlogic.gdx.math.Vector2
 
 data class RenderComponent(private val texture: Texture,
                            val depth: Short = 0,
-                           val spriteOffset: Vector2 = Vector2.Zero,
+                           val spriteOffset: Vector2 = Vector2.Zero.cpy(),
                            var rotation: Float = 0f) : Component {
 
     val sprite = Sprite(texture)
