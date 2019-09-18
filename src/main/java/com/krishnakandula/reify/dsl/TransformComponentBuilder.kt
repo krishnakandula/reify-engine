@@ -9,8 +9,13 @@ class TransformComponentBuilder : Builder<TransformComponent> {
     var y = 0f
     var width = 0f
     var height = 0f
+    var rotation = 0f
 
-    override fun build(): TransformComponent = TransformComponent(Vector2(x, y), width, height)
+    override fun build(): TransformComponent = TransformComponent(
+            Vector2(x, y),
+            width,
+            height,
+            rotation)
 }
 
 fun GameObjectBuilder.transform(init: TransformComponentBuilder.() -> Unit): TransformComponent {

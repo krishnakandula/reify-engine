@@ -9,13 +9,11 @@ class RenderComponentBuilder(private val texture: Texture) : Builder<RenderCompo
     var depth: Short = 0
     var spriteOffsetX = 0f
     var spriteOffsetY = 0f
-    var rotation = 0f
 
     override fun build(): RenderComponent = RenderComponent(
             texture,
             depth,
-            Vector2(spriteOffsetX, spriteOffsetY),
-            rotation)
+            Vector2(spriteOffsetX, spriteOffsetY))
 }
 
 fun GameObjectBuilder.render(texture: Texture,

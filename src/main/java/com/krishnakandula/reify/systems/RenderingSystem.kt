@@ -1,6 +1,5 @@
 package com.krishnakandula.reify.systems
 
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.math.Matrix4
@@ -69,7 +68,7 @@ class RenderingSystem(private val spriteBatch: SpriteBatch,
         renderable.sprite.setOrigin(0f, 0f)
         renderable.sprite.setScale(transform.height / renderable.sprite.height)
         renderable.sprite.setPosition(spritePositionX, spritePositionY)
-        renderable.sprite.rotation = renderable.rotation
+        renderable.sprite.rotation = transform.rotation
         renderable.sprite.draw(spriteBatch)
     }
 

@@ -117,16 +117,24 @@ abstract class Scene(protected val spriteBatch: SpriteBatch,
     }
 
     inline fun <reified T : System> addSystem(system: T) {
-        if (gameSystems.contains(system) || gameSystemsMap.containsKey(T::class.java)) {
+        addSystem(system, T::class.java)
+    }
+
+    fun <T : System> addSystem(system: T, clazz: Class<T>) {
+        if (gameSystems.contains(system) || gameSystemsMap.containsKey(clazz)) {
             return
         }
         gameSystems.add(system)
-        gameSystemsMap[T::class.java] = system
+        gameSystemsMap[clazz] = system
         system.onAddedToScene(this)
     }
 
     inline fun <reified T : System> removeSystem() {
-        val system = gameSystemsMap.remove(T::class.java)
+        removeSystem(T::class.java)
+    }
+
+    fun <T : System> removeSystem(clazz: Class<T>) {
+        val system = gameSystemsMap.remove(clazz)
         if (system != null) {
             gameSystems.remove(system)
             system.onRemovedFromScene()
@@ -134,8 +142,12 @@ abstract class Scene(protected val spriteBatch: SpriteBatch,
     }
 
     inline fun <reified T : System> getSystem(): T? {
-        return if (gameSystemsMap.containsKey(T::class.java)) {
-            gameSystemsMap[T::class.java] as T
+        return getSystem(T::class.java)
+    }
+
+    fun <T : System> getSystem(clazz: Class<T>): T? {
+        return if (gameSystemsMap.containsKey(clazz)) {
+            gameSystemsMap[clazz] as T
         } else null
     }
 
