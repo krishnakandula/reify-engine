@@ -11,9 +11,9 @@ class RenderingSystemBuilder(private val spriteBatch: SpriteBatch,
     override fun build(): RenderingSystem = RenderingSystem(spriteBatch, camera, priority)
 }
 
-fun Scene.renderingSystem(spriteBatch: SpriteBatch,
-                          camera: Camera,
-                          init: RenderingSystemBuilder.() -> Unit): RenderingSystem {
+fun Scene.renderer(spriteBatch: SpriteBatch,
+                   camera: Camera,
+                   init: RenderingSystemBuilder.() -> Unit): RenderingSystem {
     val builder = RenderingSystemBuilder(spriteBatch, camera)
     builder.init()
     val system = builder.build()
