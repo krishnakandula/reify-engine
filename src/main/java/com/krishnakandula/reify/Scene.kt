@@ -59,7 +59,7 @@ abstract class Scene(protected val spriteBatch: SpriteBatch,
     }
 
     fun getComponents(gameObject: GameObject): Map<Class<out Component>, Component> {
-        return componentMap.getOrDefault(gameObject.id, mutableMapOf())
+        return componentMap.getOrDefault(gameObject.id, emptyMap())
     }
 
     inline fun <reified T : Component> getComponent(gameObject: GameObject): T? {

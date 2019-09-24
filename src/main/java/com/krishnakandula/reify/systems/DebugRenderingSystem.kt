@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Rectangle
 import com.krishnakandula.reify.GameObject
 import com.krishnakandula.reify.Scene
 import com.krishnakandula.reify.components.Component
+import com.krishnakandula.reify.components.DebugRenderComponent
 import com.krishnakandula.reify.components.RenderComponent
 import com.krishnakandula.reify.components.TransformComponent
 import com.krishnakandula.reify.overlaps
@@ -61,12 +62,37 @@ class DebugRenderingSystem(private val shapeRenderer: ShapeRenderer,
     }
 
     private fun update(gameObject: GameObject) {
+        val debugRender = scene?.getComponent<DebugRenderComponent>(gameObject)
         val transform = scene?.getComponent<TransformComponent>(gameObject) ?: return
-        shapeRenderer.rect(
-                transform.position.x,
-                transform.position.y,
-                transform.width,
-                transform.height)
+
+        var shape = debugRender?.shape ?: DebugRenderComponent.Shape.RECT
+        val color = debugRender?.color ?: Color.CORAL
+        if (shapeRenderer.color != color) {
+            shapeRenderer.color = color
+        }
+        shapeRenderer.rotate(0f, 0f, 1f, transform.rotation)
+
+        when (shape) {
+            DebugRenderComponent.Shape.RECT -> {
+                shapeRenderer.rect(
+                        transform.position.x,
+                        transform.position.y,
+                        transform.width,
+                        transform.height)
+            }
+            DebugRenderComponent.Shape.TRIANGLE -> {
+                shapeRenderer.triangle(
+                        transform.position.x, transform.position.y,
+                        transform.position.x + (transform.width / 2f), transform.position.y + transform.height,
+                        transform.position.x + transform.width, transform.position.y)
+            }
+            DebugRenderComponent.Shape.CIRCLE -> {
+                shapeRenderer.circle(
+                        transform.position.x + (transform.width / 2f),
+                        transform.position.y + (transform.height / 2f),
+                        transform.width / 2f)
+            }
+        }
     }
 
     override fun getFilters(): List<Class<out Component>> = componentList
