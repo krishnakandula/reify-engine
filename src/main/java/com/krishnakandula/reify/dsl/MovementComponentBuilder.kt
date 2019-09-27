@@ -7,8 +7,9 @@ class MovementComponentBuilder : Builder<MovementComponent> {
 
     var velocityX = 0f
     var velocityY = 0f
+    var rotation = 0f
 
-    override fun build(): MovementComponent = MovementComponent(Vector2(velocityX, velocityY))
+    override fun build(): MovementComponent = MovementComponent(Vector2(velocityX, velocityY), rotation)
 }
 
 fun GameObjectBuilder.movement(init: MovementComponentBuilder.() -> Unit): MovementComponent {

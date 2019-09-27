@@ -3,8 +3,10 @@ package com.krishnakandula.reify.systems
 import com.badlogic.gdx.graphics.Camera
 import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
+import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Rectangle
+import com.badlogic.gdx.math.Vector2
 import com.krishnakandula.reify.GameObject
 import com.krishnakandula.reify.Scene
 import com.krishnakandula.reify.components.Component
@@ -47,8 +49,6 @@ class DebugRenderingSystem(private val shapeRenderer: ShapeRenderer,
         viewableArea.setHeight(camera.viewportHeight)
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
-        shapeRenderer.color = Color.CORAL
-
         gameObjects.sortedWith(Comparator { o1, o2 ->
             val r1 = scene?.getComponent<RenderComponent>(o1) ?: return@Comparator 1
             val r2 = scene?.getComponent<RenderComponent>(o2) ?: return@Comparator -1
@@ -65,26 +65,45 @@ class DebugRenderingSystem(private val shapeRenderer: ShapeRenderer,
         val debugRender = scene?.getComponent<DebugRenderComponent>(gameObject)
         val transform = scene?.getComponent<TransformComponent>(gameObject) ?: return
 
-        var shape = debugRender?.shape ?: DebugRenderComponent.Shape.RECT
+        val shape = debugRender?.shape ?: DebugRenderComponent.Shape.RECT
         val color = debugRender?.color ?: Color.CORAL
         if (shapeRenderer.color != color) {
             shapeRenderer.color = color
         }
-        shapeRenderer.rotate(0f, 0f, 1f, transform.rotation)
 
         when (shape) {
             DebugRenderComponent.Shape.RECT -> {
                 shapeRenderer.rect(
                         transform.position.x,
                         transform.position.y,
+                        transform.width / 2f,
+                        transform.height / 2f,
                         transform.width,
-                        transform.height)
+                        transform.height,
+                        1f,
+                        1f,
+                        transform.rotation)
             }
             DebugRenderComponent.Shape.TRIANGLE -> {
+                val centerX = transform.position.x + (transform.width / 2f)
+                val centerY = transform.position.y + (transform.height / 2f)
+                // Translate each point
+                val rotatedLocalPoint1 = rotatePoint(
+                        transform.position.x - centerX,
+                        transform.position.y - centerY,
+                        transform.rotation)
+                val rotatedLocalPoint2 = rotatePoint(
+                        transform.position.x + (transform.width / 2f) - centerX,
+                        transform.position.y + transform.height - centerY,
+                        transform.rotation)
+                val rotatedLocalPoint3 = rotatePoint(
+                        transform.position.x + transform.width - centerX,
+                        transform.position.y - centerY,
+                        transform.rotation)
                 shapeRenderer.triangle(
-                        transform.position.x, transform.position.y,
-                        transform.position.x + (transform.width / 2f), transform.position.y + transform.height,
-                        transform.position.x + transform.width, transform.position.y)
+                        rotatedLocalPoint1.x + centerX, rotatedLocalPoint1.y + centerY,
+                        rotatedLocalPoint2.x + centerX, rotatedLocalPoint2.y + centerY,
+                        rotatedLocalPoint3.x + centerX, rotatedLocalPoint3.y + centerY)
             }
             DebugRenderComponent.Shape.CIRCLE -> {
                 shapeRenderer.circle(
@@ -94,6 +113,10 @@ class DebugRenderingSystem(private val shapeRenderer: ShapeRenderer,
             }
         }
     }
+
+    private fun rotatePoint(localX: Float, localY: Float, angle: Float) = Vector2(
+            (localX * MathUtils.cos(angle)) - (localY * MathUtils.sin(angle)),
+            ((localY * MathUtils.cos(angle)) + (localX * MathUtils.sin(angle))))
 
     override fun getFilters(): List<Class<out Component>> = componentList
 

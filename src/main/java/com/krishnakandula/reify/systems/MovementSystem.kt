@@ -34,6 +34,7 @@ class MovementSystem(priority: Short = 125) : System(priority = priority) {
         val movementComponent = scene?.getComponent<MovementComponent>(gameObject) ?: return
 
         transformComponent.position.add(movementComponent.velocity.cpy().scl(deltaTime))
+        transformComponent.rotation += (movementComponent.rotation * deltaTime)
     }
 
     override fun getFilters(): List<Class<out Component>> = componentList
