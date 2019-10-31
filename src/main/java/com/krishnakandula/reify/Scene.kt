@@ -1,6 +1,5 @@
 package com.krishnakandula.reify
 
-import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.krishnakandula.reify.components.Component
@@ -175,13 +174,14 @@ abstract class Scene(protected val spriteBatch: SpriteBatch,
             return gameObjectsById.values
         }
         val objs = componentFamilies.getOrDefault(filters.first(), mutableSetOf())
-        return objs.filter { obj ->
-            filters.forEach { filter ->
-                if (!componentFamilies.getOrDefault(filter, mutableSetOf()).contains(obj)) {
-                    return@filter false
-                }
-            }
-            return@filter true
-        }.toSet()
+        return objs.asSequence()
+                .filter { obj ->
+                    filters.forEach { filter ->
+                        if (!componentFamilies.getOrDefault(filter, mutableSetOf()).contains(obj)) {
+                            return@filter false
+                        }
+                    }
+                    return@filter true
+                }.toSet()
     }
 }
