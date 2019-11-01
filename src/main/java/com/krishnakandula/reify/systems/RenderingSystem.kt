@@ -5,7 +5,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Rectangle
 import com.krishnakandula.reify.GameObject
-import com.krishnakandula.reify.Scene
 import com.krishnakandula.reify.components.Component
 import com.krishnakandula.reify.components.RenderComponent
 import com.krishnakandula.reify.components.TransformComponent
@@ -20,20 +19,9 @@ class RenderingSystem(private val spriteBatch: SpriteBatch,
     }
 
     private val viewableArea = Rectangle()
-    private var scene: Scene? = null
 
     fun updateProjectionMatrix(projectionMatrix: Matrix4) {
         spriteBatch.projectionMatrix = projectionMatrix
-    }
-
-    override fun onAddedToScene(scene: Scene) {
-        super.onAddedToScene(scene)
-        this.scene = scene
-    }
-
-    override fun onRemovedFromScene() {
-        super.onRemovedFromScene()
-        this.scene = null
     }
 
     override fun update(deltaTime: Float, gameObjects: Collection<GameObject>) {

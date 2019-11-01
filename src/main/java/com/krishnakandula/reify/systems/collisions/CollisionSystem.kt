@@ -7,7 +7,6 @@ import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Shape2D
 import com.badlogic.gdx.math.Vector2
 import com.krishnakandula.reify.GameObject
-import com.krishnakandula.reify.Scene
 import com.krishnakandula.reify.components.HitboxComponent
 import com.krishnakandula.reify.components.TransformComponent
 import com.krishnakandula.reify.overlaps
@@ -37,7 +36,6 @@ class CollisionSystem(private var boundingBoxWidth: Float,
     private val currentFrameCollisions = mutableSetOf<Collision>()
     private val previousFrameCollisions = mutableSetOf<Collision>()
     private var spatialHash: Array<Cell> = createSpatialHash()
-    private var scene: Scene? = null
 
     fun observeCollisions(): Observable<Collision> = collisionPublisher
 
@@ -74,16 +72,6 @@ class CollisionSystem(private var boundingBoxWidth: Float,
         val hitBox2 = scene?.getComponent<HitboxComponent>(o2) ?: return false
 
         return hitBox1.shape.collides(hitBox2.shape)
-    }
-
-    override fun onAddedToScene(scene: Scene) {
-        super.onAddedToScene(scene)
-        this.scene = scene
-    }
-
-    override fun onRemovedFromScene() {
-        super.onRemovedFromScene()
-        this.scene = null
     }
 
     override fun fixedUpdate(deltaTime: Float, gameObjects: Collection<GameObject>) {

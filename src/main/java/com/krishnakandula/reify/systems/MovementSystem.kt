@@ -1,7 +1,6 @@
 package com.krishnakandula.reify.systems
 
 import com.krishnakandula.reify.GameObject
-import com.krishnakandula.reify.Scene
 import com.krishnakandula.reify.components.Component
 import com.krishnakandula.reify.components.MovementComponent
 import com.krishnakandula.reify.components.TransformComponent
@@ -10,18 +9,6 @@ class MovementSystem(priority: Short = 125) : System(priority = priority) {
 
     companion object {
         private val componentList = listOf(MovementComponent::class.java, TransformComponent::class.java)
-    }
-
-    private var scene: Scene? = null
-
-    override fun onAddedToScene(scene: Scene) {
-        super.onAddedToScene(scene)
-        this.scene = scene
-    }
-
-    override fun onRemovedFromScene() {
-        super.onRemovedFromScene()
-        this.scene = scene
     }
 
     override fun fixedUpdate(deltaTime: Float, gameObjects: Collection<GameObject>) {

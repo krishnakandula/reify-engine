@@ -8,7 +8,6 @@ import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Vector2
 import com.krishnakandula.reify.GameObject
-import com.krishnakandula.reify.Scene
 import com.krishnakandula.reify.components.Component
 import com.krishnakandula.reify.components.DebugRenderComponent
 import com.krishnakandula.reify.components.RenderComponent
@@ -24,20 +23,9 @@ class DebugRenderingSystem(private val shapeRenderer: ShapeRenderer,
     }
 
     private val viewableArea = Rectangle()
-    private var scene: Scene? = null
 
     fun updateProjectionMatrix(projectionMatrix: Matrix4) {
         shapeRenderer.projectionMatrix = projectionMatrix
-    }
-
-    override fun onAddedToScene(scene: Scene) {
-        super.onAddedToScene(scene)
-        this.scene = scene
-    }
-
-    override fun onRemovedFromScene() {
-        super.onRemovedFromScene()
-        this.scene = null
     }
 
     override fun update(deltaTime: Float, gameObjects: Collection<GameObject>) {

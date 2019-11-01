@@ -4,7 +4,6 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.utils.viewport.Viewport
 import com.krishnakandula.reify.GameObject
-import com.krishnakandula.reify.Scene
 import com.krishnakandula.reify.components.Component
 import com.krishnakandula.reify.components.LightingComponent
 import com.krishnakandula.reify.components.TransformComponent
@@ -21,7 +20,6 @@ class LightingSystem(world: World,
     }
 
     private val rayHandler = RayHandler(world)
-    private var scene: Scene? = null
 
     fun useDiffuseLighting(useDiffuse: Boolean) {
         RayHandler.isDiffuse = useDiffuse
@@ -48,16 +46,6 @@ class LightingSystem(world: World,
 
     fun useShadows(useShadows: Boolean) {
         rayHandler.setShadows(useShadows)
-    }
-
-    override fun onAddedToScene(scene: Scene) {
-        super.onAddedToScene(scene)
-        this.scene = scene
-    }
-
-    override fun onRemovedFromScene() {
-        super.onRemovedFromScene()
-        this.scene = null
     }
 
     override fun getFilters(): List<Class<out Component>> = componentList

@@ -7,6 +7,8 @@ import com.krishnakandula.reify.Scene
 abstract class System(val priority: Short = 1,
                       var enabled: Boolean = true) {
 
+    var scene: Scene? = null
+
     abstract fun getFilters(): List<Class<out Component>>
 
     open fun onAddedToScene(scene: Scene) { }

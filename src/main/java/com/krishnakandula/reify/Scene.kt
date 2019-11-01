@@ -125,6 +125,7 @@ abstract class Scene(protected val spriteBatch: SpriteBatch,
         }
         gameSystems.add(system)
         gameSystemsMap[clazz] = system
+        system.scene = this
         system.onAddedToScene(this)
     }
 
@@ -137,6 +138,7 @@ abstract class Scene(protected val spriteBatch: SpriteBatch,
         if (system != null) {
             gameSystems.remove(system)
             system.onRemovedFromScene()
+            system.scene = null
         }
     }
 
