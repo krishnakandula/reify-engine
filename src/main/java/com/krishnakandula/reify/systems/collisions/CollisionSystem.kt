@@ -1,5 +1,6 @@
 package com.krishnakandula.reify.systems.collisions
 
+import com.badlogic.gdx.graphics.Color
 import com.badlogic.gdx.math.Circle
 import com.badlogic.gdx.math.Intersector
 import com.badlogic.gdx.math.Polygon
@@ -7,9 +8,13 @@ import com.badlogic.gdx.math.Rectangle
 import com.badlogic.gdx.math.Shape2D
 import com.badlogic.gdx.math.Vector2
 import com.krishnakandula.reify.GameObject
+import com.krishnakandula.reify.Scene
+import com.krishnakandula.reify.components.CollisionFilter
 import com.krishnakandula.reify.components.HitboxComponent
 import com.krishnakandula.reify.components.TransformComponent
-import com.krishnakandula.reify.overlaps
+import com.krishnakandula.reify.dsl.debugRender
+import com.krishnakandula.reify.dsl.gameObject
+import com.krishnakandula.reify.dsl.transform
 import com.krishnakandula.reify.systems.System
 import com.krishnakandula.reify.toPolygon
 import io.reactivex.Observable
@@ -21,13 +26,15 @@ class CollisionSystem(private var boundingBoxWidth: Float,
                       private var boundingBoxX: Float = DEFAULT_X_OFFSET,
                       private var boundingBoxY: Float = DEFAULT_Y_OFFSET,
                       private val spatialHashWidth: Int = SPATIAL_HASH_WIDTH,
-                      private val spatialHashHeight: Int = SPATIAL_HASH_HEIGHT) : System(120) {
+                      private val spatialHashHeight: Int = SPATIAL_HASH_HEIGHT,
+                      private val renderSpatialHash: Boolean = false) : System(120) {
 
     companion object {
         private const val SPATIAL_HASH_WIDTH = 20
         private const val SPATIAL_HASH_HEIGHT = 20
         private const val DEFAULT_X_OFFSET = 0f
         private const val DEFAULT_Y_OFFSET = 0f
+        private const val SPATIAL_HASH_RENDER_TAG = "SpatialHashCell"
 
         private val filters = listOf(HitboxComponent::class.java, TransformComponent::class.java)
     }
@@ -71,7 +78,41 @@ class CollisionSystem(private var boundingBoxWidth: Float,
         val hitBox1 = scene?.getComponent<HitboxComponent>(o1) ?: return false
         val hitBox2 = scene?.getComponent<HitboxComponent>(o2) ?: return false
 
-        return hitBox1.shape.collides(hitBox2.shape)
+        return if (hitBox1.collisionFilter and hitBox2.collisionFilter == CollisionFilter.NONE) {
+            false
+        } else {
+            hitBox1.shape.collides(hitBox2.shape)
+        }
+    }
+
+    override fun onAddedToScene(scene: Scene) {
+        super.onAddedToScene(scene)
+        if (renderSpatialHash) {
+            spatialHash.forEach { cell ->
+                scene.gameObject {
+                    tag = SPATIAL_HASH_RENDER_TAG
+
+                    +transform {
+                        x = cell.x
+                        y = cell.y
+                        width = cell.width
+                        height = cell.height
+                    }
+
+                    +debugRender {
+                        color = Color.SKY
+                    }
+                }
+            }
+
+        }
+    }
+
+    override fun onRemovedFromScene(scene: Scene) {
+        super.onRemovedFromScene(scene)
+        scene.getGameObjectsByTag(SPATIAL_HASH_RENDER_TAG).forEach { cell ->
+            scene.removeGameObjects(cell)
+        }
     }
 
     override fun fixedUpdate(deltaTime: Float, gameObjects: Collection<GameObject>) {
@@ -112,7 +153,6 @@ class CollisionSystem(private var boundingBoxWidth: Float,
     private fun createSpatialHash(): Array<Cell> {
         val cellWidth = boundingBoxWidth / spatialHashWidth
         val cellHeight = boundingBoxHeight / spatialHashHeight
-
         val rows = spatialHashWidth
         val cols = spatialHashHeight
 
@@ -120,7 +160,11 @@ class CollisionSystem(private var boundingBoxWidth: Float,
             val row = index / rows
             val col = index % rows
 
-            return@Array Cell((row * cellWidth) + boundingBoxX, (col * cellHeight) + boundingBoxY, cellWidth, cellHeight)
+            return@Array Cell(
+                    (row * cellWidth) + boundingBoxX,
+                    (col * cellHeight) + boundingBoxY,
+                    cellWidth,
+                    cellHeight)
         }
     }
 
@@ -201,8 +245,8 @@ class CollisionSystem(private var boundingBoxWidth: Float,
         return polygon.contains(circle.x, circle.y)
     }
 
-    private inner class Cell(x: Float,
-                             y: Float,
+    private inner class Cell(val x: Float,
+                             val y: Float,
                              val width: Float,
                              val height: Float) {
 
@@ -230,7 +274,7 @@ class CollisionSystem(private var boundingBoxWidth: Float,
                     Intersector.overlapConvexPolygons(objShape, poly)
                 }
                 is Circle -> {
-                    poly.overlaps(objShape)
+                    Intersector.overlaps(objShape, rect)
                 }
                 else -> false
             }

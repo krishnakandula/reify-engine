@@ -137,7 +137,7 @@ abstract class Scene(protected val spriteBatch: SpriteBatch,
         val system = gameSystemsMap.remove(clazz)
         if (system != null) {
             gameSystems.remove(system)
-            system.onRemovedFromScene()
+            system.onRemovedFromScene(this)
             system.scene = null
         }
     }

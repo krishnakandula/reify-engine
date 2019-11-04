@@ -13,7 +13,7 @@ abstract class System(val priority: Short = 1,
 
     open fun onAddedToScene(scene: Scene) { }
 
-    open fun onRemovedFromScene() { }
+    open fun onRemovedFromScene(scene: Scene) { }
 
     open fun update(deltaTime: Float, gameObjects: Collection<GameObject>) { }
 

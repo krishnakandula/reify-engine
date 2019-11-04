@@ -19,7 +19,7 @@ class DebugRenderingSystem(private val shapeRenderer: ShapeRenderer,
                            priority: Short = 127) : System(priority) {
 
     companion object {
-        private val componentList = listOf(RenderComponent::class.java, TransformComponent::class.java)
+        private val componentList = listOf(DebugRenderComponent::class.java, TransformComponent::class.java)
     }
 
     private val viewableArea = Rectangle()
